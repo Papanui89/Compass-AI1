@@ -73,8 +73,8 @@ struct EmergencyView: View {
                             .padding(.horizontal, 20)
                         }
                         
-                        // Bottom spacing for navigation bar
-                        Spacer(minLength: 100)
+                        // Extra bottom spacing to ensure content is scrollable above the bottom bar
+                        Spacer(minLength: 120)
                     }
                     .padding(.top, 4)
                 }
@@ -238,7 +238,7 @@ struct CrisisCardsGrid: View {
     private let crisisData: [(CrisisType, String, String, Color)] = [
         (.panicAttack, "😰", "PANIC ATTACK", .orange),
         (.bullying, "🛡️", "GETTING BULLIED", .blue),
-        (.suicide, "💔", "WANT TO DIE", .red),
+        (.suicide, "💔", "SUICIDAL THOUGHTS", .red),
         (.harassment, "🚨", "COPS/COPS STOP", .purple),
         (.medicalEmergency, "🏥", "MEDICAL EMERGENCY", .red),
         (.domesticViolence, "🏠", "UNSAFE AT HOME", .red)
@@ -370,7 +370,7 @@ struct RecentCrisisCard: View {
         switch crisis {
         case .panicAttack: return ("😰", "PANIC ATTACK", .orange)
         case .bullying: return ("🛡️", "BULLIED", .blue)
-        case .suicide: return ("💔", "WANT TO DIE", .red)
+        case .suicide: return ("💔", "SUICIDAL THOUGHTS", .red)
         case .harassment: return ("🚨", "COPS", .purple)
         case .medicalEmergency: return ("🏥", "MEDICAL", .red)
         case .domesticViolence: return ("🏠", "UNSAFE", .red)
@@ -501,9 +501,9 @@ struct BottomNavigationBar: View {
                     action: onResources
                 )
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            .padding(.bottom, 20) // Extra padding for home indicator
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
+            .padding(.bottom, 12) // Extra padding for home indicator
             .background(
                 Color(.systemBackground)
                     .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: -4)
@@ -523,18 +523,18 @@ struct BottomBarButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 4) {
+            VStack(spacing: 2) {
                 Image(systemName: icon)
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.blue)
                     .scaleEffect(isPressed ? 0.9 : 1.0)
                 
                 Text(title)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.primary)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+            .padding(.vertical, 4)
             .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
