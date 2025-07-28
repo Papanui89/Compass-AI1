@@ -31,6 +31,6 @@ class AppState: ObservableObject {
     
     func toggleStealthMode() {
         isStealthMode.toggle()
-        HapticService.shared.impact(style: .medium)
+        HapticService.shared.impact(.medium)
     }
 } 

@@ -42,7 +42,8 @@ struct FlowPlayerView: View {
                 // Action buttons
                 VStack(spacing: 15) {
                     Button("Start Guided Flow") {
-                        flowEngine.startFlow(for: crisisType)
+                        // TODO: Implement flow loading
+                        print("Flow loading not yet implemented for: \(crisisType.name)")
                     }
                     .padding()
                     .frame(maxWidth: .infinity)

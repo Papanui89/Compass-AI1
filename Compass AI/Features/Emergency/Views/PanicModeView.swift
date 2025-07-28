@@ -44,7 +44,8 @@ struct PanicModeView: View {
                     .fontWeight(.bold)
                     
                     Button("Send Location to Help") {
-                        viewModel.shareLocationWithEmergencyServices()
+                        // TODO: Implement location sharing
+                        print("Location sharing not yet implemented")
                     }
                     .padding()
                     .frame(maxWidth: .infinity)
@@ -72,7 +73,7 @@ struct PanicModeView: View {
         }
         .onAppear {
             // Provide strong haptic feedback
-            HapticService.shared.impact(style: .heavy)
+            HapticService.shared.impact(.heavy)
             
             // Play emergency sound
             AudioService.shared.playEmergencySound()
