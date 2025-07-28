@@ -1,9 +1,11 @@
 import SwiftUI
 
-/// Main emergency interface for crisis response
+/// Main emergency interface for crisis response - Simple 3-tap design
 struct EmergencyView: View {
     @StateObject private var viewModel = EmergencyViewModel()
-    @Environment(\.dismiss) private var dismiss
+    @State private var showFlowPlayer = false
+    @State private var showRightsView = false
+    @State private var showEmergencyContacts = false
     
     var body: some View {
         NavigationView {
@@ -16,38 +18,53 @@ struct EmergencyView: View {
                 )
                 .ignoresSafeArea()
                 
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Emergency header
-                        emergencyHeader
+                VStack(spacing: 30) {
+                    // Panic Button at the top
+                    panicButton
+                    
+                    Spacer()
+                    
+                    // Main 3-tap interface
+                    VStack(spacing: 25) {
+                        // What to Do button
+                        mainActionButton(
+                            title: "What to Do",
+                            subtitle: "Step-by-step guidance",
+                            icon: "list.bullet.circle.fill",
+                            color: .purple
+                        ) {
+                            showFlowPlayer = true
+                        }
                         
-                        // Crisis cards
-                        crisisCardsSection
+                        // What to Say button
+                        mainActionButton(
+                            title: "What to Say",
+                            subtitle: "Know your rights",
+                            icon: "text.bubble.fill",
+                            color: .blue
+                        ) {
+                            showRightsView = true
+                        }
                         
-                        // Quick actions
-                        quickActionsSection
-                        
-                        // Emergency contacts
-                        emergencyContactsSection
-                        
-                        // Recent crises
-                        recentCrisesSection
+                        // Who to Call button
+                        mainActionButton(
+                            title: "Who to Call",
+                            subtitle: "Emergency contacts",
+                            icon: "phone.circle.fill",
+                            color: .orange
+                        ) {
+                            showEmergencyContacts = true
+                        }
                     }
-                    .padding()
+                    .padding(.horizontal, 20)
+                    
+                    Spacer()
                 }
+                .padding(.top, 20)
             }
             .navigationTitle("Emergency")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Settings") {
-                        viewModel.showSettings = true
-                    }
-                }
-            }
-            .sheet(isPresented: $viewModel.showSettings) {
-                EmergencySettingsView()
-            }
+            .navigationBarHidden(true)
             .alert("Emergency Alert", isPresented: $viewModel.showEmergencyAlert) {
                 Button("Call 911", role: .destructive) {
                     viewModel.callEmergencyServices()
@@ -55,6 +72,15 @@ struct EmergencyView: View {
                 Button("Cancel", role: .cancel) { }
             } message: {
                 Text(viewModel.emergencyAlertMessage)
+            }
+            .sheet(isPresented: $showFlowPlayer) {
+                FlowPlayerView()
+            }
+            .sheet(isPresented: $showRightsView) {
+                RightsView()
+            }
+            .sheet(isPresented: $showEmergencyContacts) {
+                EmergencyContactsView()
             }
         }
         .onAppear {
@@ -64,335 +90,114 @@ struct EmergencyView: View {
     
     // MARK: - View Components
     
-    private var emergencyHeader: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 40))
-                .foregroundColor(.red)
-            
-            Text("Emergency Response")
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            Text("Quick access to crisis support and emergency services")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .padding()
-        .background(Color.white.opacity(0.9))
-        .cornerRadius(12)
-        .shadow(radius: 2)
-    }
-    
-    private var crisisCardsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Crisis Types")
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 12) {
-                ForEach(viewModel.crisisTypes, id: \.self) { crisisType in
-                    CrisisCard(crisisType: crisisType) {
-                        viewModel.selectCrisisType(crisisType)
-                    }
-                }
-            }
-        }
-    }
-    
-    private var quickActionsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Quick Actions")
-                .font(.headline)
-                .fontWeight(.semibold)
-            
+    private var panicButton: some View {
+        Button(action: {
+            viewModel.activatePanicMode()
+        }) {
             VStack(spacing: 8) {
-                QuickActionButton(
-                    title: "Panic Button",
-                    icon: "exclamationmark.triangle.fill",
-                    color: .red
-                ) {
-                    viewModel.activatePanicMode()
-                }
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(.white)
                 
-                QuickActionButton(
-                    title: "Quick Exit",
-                    icon: "arrow.up.right.square.fill",
-                    color: .orange
-                ) {
-                    viewModel.quickExit()
-                }
-                
-                QuickActionButton(
-                    title: "Stealth Mode",
-                    icon: "eye.slash.fill",
-                    color: .purple
-                ) {
-                    viewModel.activateStealthMode()
-                }
+                Text("PANIC")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
             }
+            .frame(width: 120, height: 120)
+            .background(
+                LinearGradient(
+                    colors: [.red, .red.opacity(0.8)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .cornerRadius(20)
+            .shadow(color: .red.opacity(0.3), radius: 10, x: 0, y: 5)
         }
+        .buttonStyle(PlainButtonStyle())
     }
     
-    private var emergencyContactsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Emergency Contacts")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-                
-                Button("Add") {
-                    viewModel.showAddContact = true
-                }
-                .font(.subheadline)
-                .foregroundColor(.blue)
-            }
-            
-            if viewModel.emergencyContacts.isEmpty {
-                Text("No emergency contacts added")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(8)
-            } else {
-                ForEach(viewModel.emergencyContacts) { contact in
-                    EmergencyContactRow(contact: contact) {
-                        viewModel.callContact(contact)
-                    }
-                }
-            }
-        }
-    }
-    
-    private var recentCrisesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Recent Crises")
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            if viewModel.recentCrises.isEmpty {
-                Text("No recent crisis events")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(8)
-            } else {
-                ForEach(viewModel.recentCrises) { crisis in
-                    RecentCrisisRow(crisis: crisis) {
-                        viewModel.viewCrisisDetails(crisis)
-                    }
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Supporting Views
-
-struct CrisisCard: View {
-    let crisisType: CrisisType
-    let action: () -> Void
-    
-    var body: some View {
+    private func mainActionButton(
+        title: String,
+        subtitle: String,
+        icon: String,
+        color: Color,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: crisisType.icon)
-                    .font(.title2)
-                    .foregroundColor(crisisType.priority.color)
+            VStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 40, weight: .medium))
+                    .foregroundColor(.white)
                 
-                Text(crisisType.displayName)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .multilineTextAlignment(.center)
+                VStack(spacing: 4) {
+                    Text(title)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Text(subtitle)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white.opacity(0.9))
+                }
             }
             .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.white.opacity(0.9))
-            .cornerRadius(8)
-            .shadow(radius: 1)
+            .frame(height: 140)
+            .background(
+                LinearGradient(
+                    colors: [color, color.opacity(0.8)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .cornerRadius(20)
+            .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
         }
         .buttonStyle(PlainButtonStyle())
     }
 }
 
-struct QuickActionButton: View {
-    let title: String
-    let icon: String
-    let color: Color
-    let action: () -> Void
-    
+// MARK: - Placeholder Views (to be implemented)
+
+struct FlowPlayerView: View {
     var body: some View {
-        Button(action: action) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.title3)
-                    .foregroundColor(color)
+        NavigationView {
+            VStack {
+                Text("What to Do")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
                 
-                Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .font(.caption)
+                Text("Step-by-step guidance will be implemented here")
+                    .font(.body)
                     .foregroundColor(.secondary)
-            }
-            .padding()
-            .background(Color.white.opacity(0.9))
-            .cornerRadius(8)
-            .shadow(radius: 1)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-struct EmergencyContactRow: View {
-    let contact: EmergencyContact
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(contact.name)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    
-                    if let relationship = contact.relationship {
-                        Text(relationship)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
+                    .multilineTextAlignment(.center)
+                    .padding()
                 
                 Spacer()
-                
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text(contact.phoneNumber)
-                        .font(.subheadline)
-                        .foregroundColor(.blue)
-                    
-                    if contact.isPrimary {
-                        Text("Primary")
-                            .font(.caption)
-                            .foregroundColor(.green)
-                    }
-                }
             }
-            .padding()
-            .background(Color.white.opacity(0.9))
-            .cornerRadius(8)
-            .shadow(radius: 1)
+            .navigationTitle("What to Do")
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 
-struct RecentCrisisRow: View {
-    let crisis: Crisis
-    let action: () -> Void
-    
+struct RightsView: View {
     var body: some View {
-        Button(action: action) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(crisis.type.displayName)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    
-                    Text(crisis.timestamp, style: .relative)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+        NavigationView {
+            VStack {
+                Text("What to Say")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                
+                Text("Know your rights information will be implemented here")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding()
                 
                 Spacer()
-                
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text(crisis.severity.displayName)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(crisis.severity.uiColor)
-                    
-                    Text(crisis.status.displayName)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
             }
-            .padding()
-            .background(Color.white.opacity(0.9))
-            .cornerRadius(8)
-            .shadow(radius: 1)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-// MARK: - Extensions
-
-extension CrisisType {
-    var icon: String {
-        switch self {
-        case .suicide:
-            return "heart.slash"
-        case .domesticViolence:
-            return "house.slash"
-        case .medicalEmergency:
-            return "cross.case"
-        case .mentalHealth:
-            return "brain.head.profile"
-        case .substanceAbuse:
-            return "pills"
-        case .naturalDisaster:
-            return "tornado"
-        case .violence:
-            return "exclamationmark.shield"
-        case .abuse:
-            return "person.slash"
-        case .harassment:
-            return "message.slash"
-        case .other:
-            return "exclamationmark.triangle"
-        }
-    }
-}
-
-extension CrisisPriority {
-    var color: Color {
-        switch self {
-        case .low:
-            return .green
-        case .medium:
-            return .yellow
-        case .high:
-            return .orange
-        case .immediate:
-            return .red
-        }
-    }
-}
-
-extension CrisisSeverity {
-    var uiColor: Color {
-        switch self {
-        case .low:
-            return .green
-        case .medium:
-            return .yellow
-        case .high:
-            return .orange
-        case .critical:
-            return .red
+            .navigationTitle("What to Say")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
