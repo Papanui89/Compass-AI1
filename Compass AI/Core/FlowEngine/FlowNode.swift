@@ -86,32 +86,32 @@ struct FlowAction: Identifiable, Codable {
     
     private func executeCall() async throws -> FlowActionResult {
         // Implementation for making emergency calls
-        return FlowActionResult(actionId: id, success: true, data: [:])
+        return FlowActionResult(actionId: id, success: true, data: ["type": "call"])
     }
     
     private func executeText() async throws -> FlowActionResult {
         // Implementation for sending text messages
-        return FlowActionResult(actionId: id, success: true, data: [:])
+        return FlowActionResult(actionId: id, success: true, data: ["type": "text"])
     }
     
     private func executeLocation() async throws -> FlowActionResult {
         // Implementation for location services
-        return FlowActionResult(actionId: id, success: true, data: [:])
+        return FlowActionResult(actionId: id, success: true, data: ["type": "location"])
     }
     
     private func executeHaptic() async throws -> FlowActionResult {
         // Implementation for haptic feedback
-        return FlowActionResult(actionId: id, success: true, data: [:])
+        return FlowActionResult(actionId: id, success: true, data: ["type": "haptic"])
     }
     
     private func executeAudio() async throws -> FlowActionResult {
         // Implementation for audio playback
-        return FlowActionResult(actionId: id, success: true, data: [:])
+        return FlowActionResult(actionId: id, success: true, data: ["type": "audio"])
     }
     
     private func executeNotification() async throws -> FlowActionResult {
         // Implementation for notifications
-        return FlowActionResult(actionId: id, success: true, data: [:])
+        return FlowActionResult(actionId: id, success: true, data: ["type": "notification"])
     }
 }
 
@@ -176,8 +176,14 @@ struct FlowResult {
     let timestamp: Date
 }
 
-struct FlowActionResult {
+struct FlowActionResult: Codable {
     let actionId: String
     let success: Bool
-    let data: [String: Any]
+    let data: [String: String]
+    
+    init(actionId: String, success: Bool, data: [String: String] = [:]) {
+        self.actionId = actionId
+        self.success = success
+        self.data = data
+    }
 } 

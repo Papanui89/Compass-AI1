@@ -159,15 +159,41 @@ class FlowRepository {
     // MARK: - Private Methods
     
     private func loadBundledFlow(_ flowType: FlowType) async throws -> Flow {
-        guard let url = Bundle.main.url(forResource: flowType.rawValue, withExtension: "json", subdirectory: "Resources/Flows") else {
+        // Try different possible paths for the JSON file
+        let possiblePaths = [
+            "Resources/Flows/\(flowType.rawValue)",
+            "Flows/\(flowType.rawValue)",
+            flowType.rawValue
+        ]
+        
+        var flowData: Data?
+        var foundPath: String?
+        
+        for path in possiblePaths {
+            if let url = Bundle.main.url(forResource: path, withExtension: "json") {
+                do {
+                    flowData = try Data(contentsOf: url)
+                    foundPath = path
+                    break
+                } catch {
+                    print("Failed to load flow from \(path): \(error)")
+                }
+            }
+        }
+        
+        guard let data = flowData else {
             throw FlowRepositoryError.flowNotFound(flowType)
         }
         
-        let data = try Data(contentsOf: url)
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         
-        return try decoder.decode(Flow.self, from: data)
+        do {
+            return try decoder.decode(Flow.self, from: data)
+        } catch {
+            print("Failed to decode flow from \(foundPath ?? "unknown"): \(error)")
+            throw FlowRepositoryError.importFailed(error)
+        }
     }
 }
 
