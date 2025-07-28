@@ -20,7 +20,7 @@ struct EmergencyView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // AI Chat Bar at top
+                // AI Chat Bar at top - Hero Feature
                 AIChatBar(
                     message: $aiMessage,
                     isListening: $isListening,
@@ -39,33 +39,38 @@ struct EmergencyView: View {
                         // TODO: Implement speech recognition
                     }
                 )
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
                 
                 // Crisis Cards Grid
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 24) {
                         // Recent section (if any)
                         if !viewModel.recentCrises.isEmpty {
                             RecentCrisesSection(crises: viewModel.recentCrises) { crisis in
                                 showingCrisisType = crisis
                             }
+                            .padding(.horizontal, 20)
                         }
                         
                         // Main crisis grid
                         CrisisCardsGrid { crisis in
                             showingCrisisType = crisis
                         }
+                        .padding(.horizontal, 20)
                         
                         // Smart suggestions based on time/location
                         if let suggestion = viewModel.smartSuggestion {
                             SmartSuggestionCard(suggestion: suggestion) {
                                 showingCrisisType = suggestion.crisisType
                             }
+                            .padding(.horizontal, 20)
                         }
+                        
+                        // Bottom spacing for navigation bar
+                        Spacer(minLength: 120)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 100) // Space for bottom bar
+                    .padding(.top, 8)
                 }
             }
             
@@ -112,39 +117,120 @@ struct AIChatBar: View {
     let onSend: () -> Void
     let onMicTap: () -> Void
     
+    @State private var isPulsing = false
+    
     var body: some View {
-        HStack(spacing: 12) {
-            // Mic button
-            Button(action: onMicTap) {
-                Image(systemName: isListening ? "stop.circle.fill" : "mic.circle.fill")
-                    .font(.system(size: 32))
-                    .foregroundColor(isListening ? .red : .blue)
-                    .background(Color.white)
-                    .clipShape(Circle())
-                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-            }
-            
-            // Text input
-            HStack {
-                TextField("What's happening? Tell me in your own words...", text: $message)
-                    .textFieldStyle(PlainTextFieldStyle())
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+        VStack(spacing: 0) {
+            // Hero AI Chat Section
+            VStack(spacing: 16) {
+                // Header with icon and title
+                HStack(spacing: 12) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundColor(.white)
+                        .scaleEffect(isPulsing ? 1.1 : 1.0)
+                        .animation(
+                            Animation.easeInOut(duration: 2.0)
+                                .repeatForever(autoreverses: true),
+                            value: isPulsing
+                        )
+                    
+                    Text("What's happening? Talk to me...")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.leading)
+                    
+                    Spacer()
+                }
                 
-                if !message.isEmpty {
-                    Button(action: onSend) {
-                        Image(systemName: "arrow.up.circle.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(.blue)
+                // Chat input area
+                HStack(spacing: 16) {
+                    // Mic button
+                    Button(action: {
+                        HapticService.shared.impact(.medium)
+                        onMicTap()
+                    }) {
+                        Image(systemName: isListening ? "stop.circle.fill" : "mic.circle.fill")
+                            .font(.system(size: 44, weight: .medium))
+                            .foregroundColor(isListening ? .red : .white)
+                            .background(
+                                Circle()
+                                    .fill(Color.white.opacity(0.2))
+                                    .frame(width: 60, height: 60)
+                            )
+                            .frame(width: 60, height: 60)
                     }
-                    .padding(.trailing, 12)
+                    .accessibilityLabel(isListening ? "Stop recording" : "Start voice recording")
+                    
+                    // Text input
+                    HStack {
+                        TextField("Type your message here...", text: $message)
+                            .font(.system(size: 18))
+                            .foregroundColor(.white)
+                            .textFieldStyle(PlainTextFieldStyle())
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                            .background(Color.white.opacity(0.15))
+                            .cornerRadius(20)
+                        
+                        if !message.isEmpty {
+                            Button(action: {
+                                HapticService.shared.impact(.light)
+                                onSend()
+                            }) {
+                                Image(systemName: "arrow.up.circle.fill")
+                                    .font(.system(size: 32, weight: .medium))
+                                    .foregroundColor(.white)
+                            }
+                            .accessibilityLabel("Send message")
+                            .padding(.trailing, 8)
+                        }
+                    }
                 }
             }
-            .background(Color.white)
-            .cornerRadius(25)
-            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+            .padding(24)
+            .background(
+                LinearGradient(
+                    colors: [
+                        Color.purple.opacity(0.9),
+                        Color.blue.opacity(0.8)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .cornerRadius(24)
+            .shadow(
+                color: Color.purple.opacity(0.3),
+                radius: 12,
+                x: 0,
+                y: 6
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            )
+            
+            // Divider with "OR" text
+            HStack {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(height: 1)
+                
+                Text("OR")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 16)
+                
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(height: 1)
+            }
+            .padding(.vertical, 20)
         }
-        .padding(.vertical, 8)
+        .onAppear {
+            isPulsing = true
+        }
     }
 }
 
@@ -162,20 +248,26 @@ struct CrisisCardsGrid: View {
     ]
     
     var body: some View {
-        VStack(spacing: 16) {
-            Text("OR CHOOSE YOUR SITUATION")
-                .font(.caption)
-                .fontWeight(.semibold)
+        VStack(spacing: 20) {
+            Text("CHOOSE YOUR SITUATION")
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(.secondary)
                 .padding(.top, 8)
             
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 2), spacing: 12) {
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: 16),
+                    GridItem(.flexible(), spacing: 16)
+                ],
+                spacing: 16
+            ) {
                 ForEach(crisisData, id: \.0) { crisis in
                     CrisisCard(
                         emoji: crisis.1,
                         title: crisis.2,
                         color: crisis.3
                     ) {
+                        HapticService.shared.impact(.medium)
                         onCrisisTap(crisis.0)
                     }
                 }
@@ -192,21 +284,31 @@ struct CrisisCard: View {
     let action: () -> Void
     
     @State private var isAnimating = false
+    @State private var isPressed = false
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 12) {
+            VStack(spacing: 16) {
                 Text(emoji)
-                    .font(.system(size: 36))
+                    .font(.system(size: 40))
+                    .scaleEffect(isAnimating ? 1.05 : 1.0)
+                    .animation(
+                        Animation.easeInOut(duration: 2.0)
+                            .repeatForever(autoreverses: true),
+                        value: isAnimating
+                    )
                 
                 Text(title)
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
-                    .lineLimit(2)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.8)
             }
-            .frame(height: 100)
+            .frame(minHeight: 120)
             .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .padding(.horizontal, 16)
             .background(
                 LinearGradient(
                     colors: [color, color.opacity(0.8)],
@@ -214,19 +316,25 @@ struct CrisisCard: View {
                     endPoint: .bottomTrailing
                 )
             )
-            .cornerRadius(16)
-            .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
-            .scaleEffect(isAnimating ? 1.05 : 1.0)
-            .animation(
-                Animation.easeInOut(duration: 2.0)
-                    .repeatForever(autoreverses: true),
-                value: isAnimating
+            .cornerRadius(20)
+            .shadow(
+                color: color.opacity(0.3),
+                radius: 8,
+                x: 0,
+                y: 4
             )
+            .scaleEffect(isPressed ? 0.95 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel("\(title) - Tap for help")
+        .accessibilityHint("Double tap to get help for \(title.lowercased())")
         .onAppear {
             isAnimating = true
         }
+        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
+            isPressed = pressing
+        }, perform: {})
     }
 }
 
@@ -236,10 +344,9 @@ struct RecentCrisesSection: View {
     let onCrisisTap: (CrisisType) -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             Text("RECENT")
-                .font(.caption)
-                .fontWeight(.semibold)
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(.secondary)
             
             ScrollView(.horizontal, showsIndicators: false) {
@@ -261,6 +368,8 @@ struct RecentCrisisCard: View {
     let crisis: CrisisType
     let action: () -> Void
     
+    @State private var isPressed = false
+    
     private var crisisInfo: (String, String, Color) {
         switch crisis {
         case .panicAttack: return ("😰", "FREAKING OUT", .orange)
@@ -279,7 +388,10 @@ struct RecentCrisisCard: View {
     }
     
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            HapticService.shared.impact(.light)
+            action()
+        }) {
             HStack(spacing: 8) {
                 Text(crisisInfo.0)
                     .font(.system(size: 20))
@@ -288,12 +400,25 @@ struct RecentCrisisCard: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.white)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(crisisInfo.2)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                LinearGradient(
+                    colors: [crisisInfo.2, crisisInfo.2.opacity(0.8)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
             .cornerRadius(20)
+            .shadow(color: crisisInfo.2.opacity(0.3), radius: 4, x: 0, y: 2)
+            .scaleEffect(isPressed ? 0.95 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel("Recent: \(crisisInfo.1) - Tap for help")
+        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
+            isPressed = pressing
+        }, perform: {})
     }
 }
 
@@ -302,30 +427,36 @@ struct SmartSuggestionCard: View {
     let suggestion: SmartSuggestion
     let action: () -> Void
     
+    @State private var isPressed = false
+    
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
+        Button(action: {
+            HapticService.shared.impact(.medium)
+            action()
+        }) {
+            HStack(spacing: 16) {
                 Image(systemName: suggestion.icon)
-                    .font(.system(size: 24))
+                    .font(.system(size: 28, weight: .medium))
                     .foregroundColor(.white)
+                    .frame(width: 40, height: 40)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(suggestion.title)
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 18, weight: .bold))
                         .foregroundColor(.white)
                     
                     Text(suggestion.subtitle)
-                        .font(.system(size: 12))
+                        .font(.system(size: 14))
                         .foregroundColor(.white.opacity(0.9))
                 }
                 
                 Spacer()
                 
                 Image(systemName: "arrow.right.circle.fill")
-                    .font(.system(size: 20))
+                    .font(.system(size: 24, weight: .medium))
                     .foregroundColor(.white.opacity(0.8))
             }
-            .padding(16)
+            .padding(20)
             .background(
                 LinearGradient(
                     colors: [.purple, .blue],
@@ -333,10 +464,17 @@ struct SmartSuggestionCard: View {
                     endPoint: .trailing
                 )
             )
-            .cornerRadius(16)
+            .cornerRadius(20)
             .shadow(color: .purple.opacity(0.3), radius: 8, x: 0, y: 4)
+            .scaleEffect(isPressed ? 0.98 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel("Suggestion: \(suggestion.title) - \(suggestion.subtitle)")
+        .accessibilityHint("Double tap to get help for \(suggestion.title.lowercased())")
+        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
+            isPressed = pressing
+        }, perform: {})
     }
 }
 
@@ -347,28 +485,35 @@ struct BottomNavigationBar: View {
     let onResources: () -> Void
     
     var body: some View {
-        HStack(spacing: 0) {
-            BottomBarButton(
-                icon: "doc.text",
-                title: "Rights",
-                action: onRights
-            )
-            
-            BottomBarButton(
-                icon: "person.2",
-                title: "Contacts",
-                action: onContacts
-            )
-            
-            BottomBarButton(
-                icon: "folder",
-                title: "Resources",
-                action: onResources
+        VStack(spacing: 0) {
+            // Bottom Navigation Bar
+            HStack(spacing: 0) {
+                BottomBarButton(
+                    icon: "doc.text",
+                    title: "Rights",
+                    action: onRights
+                )
+                
+                BottomBarButton(
+                    icon: "person.2",
+                    title: "Contacts",
+                    action: onContacts
+                )
+                
+                BottomBarButton(
+                    icon: "folder",
+                    title: "Resources",
+                    action: onResources
+                )
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 32) // Extra padding for home indicator
+            .background(
+                Color(.systemBackground)
+                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: -4)
             )
         }
-        .background(Color(.systemBackground))
-        .cornerRadius(20, corners: [.topLeft, .topRight])
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: -5)
     }
 }
 
@@ -378,12 +523,18 @@ struct BottomBarButton: View {
     let title: String
     let action: () -> Void
     
+    @State private var isPressed = false
+    
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
+        Button(action: {
+            HapticService.shared.impact(.light)
+            action()
+        }) {
+            VStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.system(size: 20))
+                    .font(.system(size: 24, weight: .medium))
                     .foregroundColor(.blue)
+                    .scaleEffect(isPressed ? 0.9 : 1.0)
                 
                 Text(title)
                     .font(.system(size: 12, weight: .medium))
@@ -391,8 +542,16 @@ struct BottomBarButton: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
+            .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel("\(title) - Tap to open")
+        .accessibilityHint("Double tap to open \(title.lowercased())")
+        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isPressed = pressing
+            }
+        }, perform: {})
     }
 }
 
