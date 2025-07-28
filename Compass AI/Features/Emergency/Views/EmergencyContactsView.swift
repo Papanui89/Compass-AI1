@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct EmergencyContactsView: View {
     @StateObject private var viewModel = EmergencyContactsViewModel()
@@ -43,7 +44,7 @@ struct EmergencyContactsView: View {
 }
 
 struct ContactRow: View {
-    let contact: EmergencyContact
+    let contact: ContactRowData
     
     var body: some View {
         Button(action: {
