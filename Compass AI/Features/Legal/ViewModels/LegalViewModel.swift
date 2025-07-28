@@ -77,7 +77,7 @@ class LegalViewModel: ObservableObject {
     }
 }
 
-struct LegalScenario: Identifiable, Equatable {
+struct LegalScenario: Identifiable, Equatable, Hashable {
     let id = UUID()
     let title: String
     let scripts: [String]

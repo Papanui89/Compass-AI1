@@ -1,6 +1,7 @@
 import SwiftUI
 import Speech
 import AVFoundation
+import Foundation
 
 @MainActor
 class AIChatViewModel: ObservableObject {
@@ -162,15 +163,15 @@ struct ChatMessage: Identifiable {
     let timestamp = Date()
 }
 
-// Crisis Triggers
-enum CrisisTrigger {
-    case immediate
-    case suicide
-    case violence
-    case medical
-    case police
-    case panic
-}
+// Crisis Triggers - using TriggerType from TriggerDetector
+// enum CrisisTrigger {
+//     case immediate
+//     case suicide
+//     case violence
+//     case medical
+//     case police
+//     case panic
+// }
 
 // Notification extension
 extension Notification.Name {

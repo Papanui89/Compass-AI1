@@ -293,12 +293,7 @@ struct EmergencySettingsView: View {
 
 // MARK: - Placeholder Views
 
-struct EmergencyContactsView: View {
-    var body: some View {
-        Text("Emergency Contacts")
-            .navigationTitle("Emergency Contacts")
-    }
-}
+// EmergencyContactsView is now in Features/Emergency/Views/EmergencyContactsView.swift
 
 struct AddEmergencyContactView: View {
     var body: some View {
