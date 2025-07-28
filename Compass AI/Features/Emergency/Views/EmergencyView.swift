@@ -13,7 +13,7 @@ struct EmergencyView: View {
     @State private var isLoadingFlow = false
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             // Background gradient
             LinearGradient(colors: [Color.blue.opacity(0.05), Color.purple.opacity(0.05)], 
                           startPoint: .top, 
@@ -21,8 +21,8 @@ struct EmergencyView: View {
                 .ignoresSafeArea()
             
             // Main scrollable content
-            ScrollView {
-                VStack(spacing: 20) {
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(spacing: 24) {
                     // AI Chat Bar at top - Hero Feature
                     AIChatBar(
                         message: $aiMessage,
@@ -44,8 +44,7 @@ struct EmergencyView: View {
                             // TODO: Implement speech recognition
                         }
                     )
-                    .padding(.horizontal, 20)
-                    .padding(.top, 16)
+                    .padding(.horizontal)
                     
                     // Recent section (if any)
                     if !viewModel.recentCrises.isEmpty {
@@ -53,7 +52,7 @@ struct EmergencyView: View {
                             HapticService.shared.impact(.medium)
                             showingCrisisType = crisis
                         }
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal)
                     }
                     
                     // Main crisis grid
@@ -61,7 +60,7 @@ struct EmergencyView: View {
                         HapticService.shared.impact(.medium)
                         showingCrisisType = crisis
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal)
                     
                     // Smart suggestions based on time/location
                     if let suggestion = viewModel.smartSuggestion {
@@ -69,37 +68,22 @@ struct EmergencyView: View {
                             HapticService.shared.impact(.medium)
                             showingCrisisType = suggestion.crisisType
                         }
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal)
                     }
                     
-                    // Add extra content to ensure scrolling is needed
-                    VStack(spacing: 16) {
-                        Text("Additional Resources")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.secondary)
-                        
-                        ForEach(0..<5, id: \.self) { index in
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.gray.opacity(0.1))
-                                .frame(height: 60)
-                                .overlay(
-                                    Text("Resource \(index + 1)")
-                                        .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(.primary)
-                                )
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    
-                    // Critical spacer for bottom bar clearance
-                    Spacer()
-                        .frame(height: 120) // Increased height for bottom bar + padding
+                    // CRITICAL: Add bottom padding for bottom bar
+                    Color.clear
+                        .frame(height: 120)
                 }
-                .padding(.top, 4)
+                .padding(.top)
+                .background(GeometryReader { geo in
+                    Color.clear.onAppear {
+                        print("Content height: \(geo.size.height)")
+                    }
+                })
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure ScrollView takes full space
             
-            // Floating bottom navigation - positioned at bottom
+            // Bottom navigation (floating)
             VStack {
                 Spacer()
                 BottomNavigationBar(
@@ -172,7 +156,8 @@ struct AIChatBar: View {
                         
                         Text("What's happening? Talk to me...")
                             .font(.title3)
-                            .foregroundColor(.gray)
+                            .fontWeight(.medium)
+                            .foregroundColor(.primary)
                     }
                     
                     Spacer()
@@ -223,11 +208,11 @@ struct AIChatBar: View {
             .background(
                 LinearGradient(
                     colors: [
-                        Color.purple.opacity(0.95),
-                        Color.blue.opacity(0.85)
+                        Color.blue.opacity(0.15),
+                        Color.purple.opacity(0.15)
                     ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
+                    startPoint: .leading,
+                    endPoint: .trailing
                 )
             )
             .cornerRadius(30)
