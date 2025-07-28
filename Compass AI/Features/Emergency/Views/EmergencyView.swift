@@ -5,6 +5,8 @@ struct EmergencyView: View {
     @State private var showingCrisisType: CrisisType?
     @State private var showingPanicMode = false
     @State private var showingAIChat = false
+    @State private var showingRights = false
+    @State private var showingContacts = false
     
     var body: some View {
         ZStack {
@@ -43,7 +45,7 @@ struct EmergencyView: View {
                         icon: "bubble.left.fill",
                         color: .blue
                     ) {
-                        // Navigate to rights
+                        showingRights = true
                     }
                     
                     // Who to Call
@@ -53,7 +55,7 @@ struct EmergencyView: View {
                         icon: "phone.fill",
                         color: .green
                     ) {
-                        // Show contacts
+                        showingContacts = true
                     }
                 }
                 .padding(.horizontal, 20)
@@ -94,6 +96,12 @@ struct EmergencyView: View {
         }
         .fullScreenCover(isPresented: $showingPanicMode) {
             PanicModeView()
+        }
+        .sheet(isPresented: $showingRights) {
+            RightsView()
+        }
+        .sheet(isPresented: $showingContacts) {
+            EmergencyContactsView()
         }
     }
 }
