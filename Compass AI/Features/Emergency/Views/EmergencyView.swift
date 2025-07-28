@@ -47,7 +47,7 @@ struct EmergencyView: View {
                 
                 // Crisis Cards Grid
                 ScrollView {
-                    VStack(spacing: 24) {
+                    VStack(spacing: 20) {
                         // Recent section (if any)
                         if !viewModel.recentCrises.isEmpty {
                             RecentCrisesSection(crises: viewModel.recentCrises) { crisis in
@@ -74,15 +74,12 @@ struct EmergencyView: View {
                         }
                         
                         // Bottom spacing for navigation bar
-                        Spacer(minLength: 140)
+                        Spacer(minLength: 100)
                     }
-                    .padding(.top, 8)
+                    .padding(.top, 4)
                 }
-            }
-            
-            // Bottom Navigation Bar
-            VStack {
-                Spacer()
+                
+                // Bottom Navigation Bar - Fixed at bottom
                 BottomNavigationBar(
                     onRights: { 
                         HapticService.shared.impact(.light)
@@ -248,18 +245,18 @@ struct CrisisCardsGrid: View {
     ]
     
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 20) {
             Text("CHOOSE YOUR SITUATION")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.secondary)
-                .padding(.top, 12)
+                .padding(.top, 8)
             
             LazyVGrid(
                 columns: [
-                    GridItem(.flexible(), spacing: 20),
-                    GridItem(.flexible(), spacing: 20)
+                    GridItem(.flexible(), spacing: 16),
+                    GridItem(.flexible(), spacing: 16)
                 ],
-                spacing: 20
+                spacing: 16
             ) {
                 ForEach(crisisData, id: \.0) { crisis in
                     CrisisCard(
@@ -287,9 +284,9 @@ struct CrisisCard: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 16) {
+            VStack(spacing: 12) {
                 Text(emoji)
-                    .font(.system(size: 40))
+                    .font(.system(size: 36))
                     .scaleEffect(isAnimating ? 1.08 : 1.0)
                     .animation(
                         Animation.easeInOut(duration: 2.5)
@@ -298,16 +295,16 @@ struct CrisisCard: View {
                     )
                 
                 Text(title)
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
-                    .lineLimit(3)
+                    .lineLimit(2)
                     .minimumScaleFactor(0.8)
             }
-            .frame(minHeight: 120)
+            .frame(minHeight: 100)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
-            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+            .padding(.horizontal, 12)
             .background(
                 LinearGradient(
                     colors: [color, color.opacity(0.8)],
@@ -315,12 +312,12 @@ struct CrisisCard: View {
                     endPoint: .bottomTrailing
                 )
             )
-            .cornerRadius(22)
+            .cornerRadius(20)
             .shadow(
                 color: color.opacity(0.4),
-                radius: 10,
+                radius: 8,
                 x: 0,
-                y: 5
+                y: 4
             )
             .scaleEffect(isPressed ? 0.95 : 1.0)
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
@@ -479,6 +476,11 @@ struct BottomNavigationBar: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            // Separator line
+            Rectangle()
+                .fill(Color.gray.opacity(0.2))
+                .frame(height: 1)
+            
             // Bottom Navigation Bar
             HStack(spacing: 0) {
                 BottomBarButton(
@@ -500,16 +502,14 @@ struct BottomNavigationBar: View {
                 )
             }
             .padding(.horizontal, 20)
-            .padding(.top, 16)
-            .padding(.bottom, 40) // Extra padding for home indicator
+            .padding(.top, 8)
+            .padding(.bottom, 20) // Extra padding for home indicator
             .background(
                 Color(.systemBackground)
-                    .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: -6)
+                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: -4)
             )
         }
-        .safeAreaInset(edge: .bottom) {
-            Color.clear.frame(height: 0)
-        }
+        .background(Color(.systemBackground))
     }
 }
 
@@ -523,18 +523,18 @@ struct BottomBarButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
+            VStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 28, weight: .medium))
+                    .font(.system(size: 20, weight: .medium))
                     .foregroundColor(.blue)
                     .scaleEffect(isPressed ? 0.9 : 1.0)
                 
                 Text(title)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundColor(.primary)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
+            .padding(.vertical, 8)
             .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
