@@ -2,7 +2,8 @@ import SwiftUI
 import Foundation
 
 /// ViewModel for managing emergency interface state and logic
-class EmergencyViewModel: ObservableObject {
+@MainActor
+final class EmergencyViewModel: ObservableObject {
     @Published var crisisTypes: [CrisisType] = []
     @Published var emergencyContacts: [EmergencyContact] = []
     @Published var recentCrises: [Crisis] = []
