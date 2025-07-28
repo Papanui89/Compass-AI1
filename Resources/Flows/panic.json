@@ -1,0 +1,374 @@
+{
+  "id": "panic_flow",
+  "type": "panic",
+  "title": "Panic Response Flow",
+  "description": "Immediate response flow for panic situations",
+  "version": "1.0",
+  "startNode": "panic_assessment",
+  "nodes": [
+    {
+      "id": "panic_assessment",
+      "type": "question",
+      "title": "Are you in immediate danger?",
+      "content": "Please answer quickly: Are you currently in immediate physical danger?",
+      "actions": [
+        {
+          "id": "haptic_alert",
+          "type": "haptic",
+          "title": "Alert Haptic",
+          "parameters": {
+            "intensity": "heavy",
+            "pattern": "urgent"
+          }
+        }
+      ],
+      "conditions": [
+        {
+          "id": "danger_yes",
+          "type": "userResponse",
+          "parameters": {
+            "expected": "yes"
+          }
+        },
+        {
+          "id": "danger_no",
+          "type": "userResponse",
+          "parameters": {
+            "expected": "no"
+          }
+        }
+      ],
+      "nextNodes": {
+        "danger_yes": "immediate_emergency",
+        "danger_no": "safety_check"
+      }
+    },
+    {
+      "id": "immediate_emergency",
+      "type": "emergency",
+      "title": "Immediate Emergency Response",
+      "content": "You are in immediate danger. We are calling emergency services now.",
+      "actions": [
+        {
+          "id": "call_911",
+          "type": "call",
+          "title": "Call 911",
+          "parameters": {
+            "phone_number": "911"
+          }
+        },
+        {
+          "id": "location_share",
+          "type": "location",
+          "title": "Share Location",
+          "parameters": {
+            "share_with": "emergency_services"
+          }
+        },
+        {
+          "id": "emergency_haptic",
+          "type": "haptic",
+          "title": "Emergency Haptic",
+          "parameters": {
+            "intensity": "critical",
+            "pattern": "continuous"
+          }
+        }
+      ],
+      "nextNodes": {}
+    },
+    {
+      "id": "safety_check",
+      "type": "question",
+      "title": "Safety Assessment",
+      "content": "Are you in a safe location? Can you move to a safer place?",
+      "actions": [
+        {
+          "id": "calm_haptic",
+          "type": "haptic",
+          "title": "Calm Haptic",
+          "parameters": {
+            "intensity": "medium",
+            "pattern": "gentle"
+          }
+        }
+      ],
+      "conditions": [
+        {
+          "id": "safe_yes",
+          "type": "userResponse",
+          "parameters": {
+            "expected": "yes"
+          }
+        },
+        {
+          "id": "safe_no",
+          "type": "userResponse",
+          "parameters": {
+            "expected": "no"
+          }
+        }
+      ],
+      "nextNodes": {
+        "safe_yes": "breathing_exercise",
+        "safe_no": "safety_planning"
+      }
+    },
+    {
+      "id": "breathing_exercise",
+      "type": "instruction",
+      "title": "Breathing Exercise",
+      "content": "Let's take a moment to breathe. Follow this pattern: Inhale for 4 counts, hold for 4, exhale for 4, hold for 4. Repeat 3 times.",
+      "actions": [
+        {
+          "id": "breathing_audio",
+          "type": "audio",
+          "title": "Breathing Guide",
+          "parameters": {
+            "audio_file": "breathing_guide.mp3",
+            "duration": "60"
+          }
+        },
+        {
+          "id": "gentle_haptic",
+          "type": "haptic",
+          "title": "Gentle Haptic",
+          "parameters": {
+            "intensity": "light",
+            "pattern": "breathing"
+          }
+        }
+      ],
+      "nextNodes": {
+        "default": "crisis_assessment"
+      }
+    },
+    {
+      "id": "safety_planning",
+      "type": "instruction",
+      "title": "Safety Planning",
+      "content": "If you're not in a safe location, try to move to a safer place. Can you identify a safe location nearby?",
+      "actions": [
+        {
+          "id": "safety_haptic",
+          "type": "haptic",
+          "title": "Safety Haptic",
+          "parameters": {
+            "intensity": "medium",
+            "pattern": "alert"
+          }
+        }
+      ],
+      "nextNodes": {
+        "default": "crisis_assessment"
+      }
+    },
+    {
+      "id": "crisis_assessment",
+      "type": "question",
+      "title": "Crisis Level Assessment",
+      "content": "On a scale of 1-10, how severe is your current crisis? (1 = mild, 10 = life-threatening)",
+      "actions": [
+        {
+          "id": "assessment_haptic",
+          "type": "haptic",
+          "title": "Assessment Haptic",
+          "parameters": {
+            "intensity": "medium",
+            "pattern": "single"
+          }
+        }
+      ],
+      "conditions": [
+        {
+          "id": "severe_crisis",
+          "type": "userResponse",
+          "parameters": {
+            "range": "8-10"
+          }
+        },
+        {
+          "id": "moderate_crisis",
+          "type": "userResponse",
+          "parameters": {
+            "range": "4-7"
+          }
+        },
+        {
+          "id": "mild_crisis",
+          "type": "userResponse",
+          "parameters": {
+            "range": "1-3"
+          }
+        }
+      ],
+      "nextNodes": {
+        "severe_crisis": "emergency_contact",
+        "moderate_crisis": "support_contact",
+        "mild_crisis": "coping_strategies"
+      }
+    },
+    {
+      "id": "emergency_contact",
+      "type": "action",
+      "title": "Emergency Contact",
+      "content": "This is a severe crisis. We recommend contacting emergency services or a crisis hotline.",
+      "actions": [
+        {
+          "id": "call_crisis_hotline",
+          "type": "call",
+          "title": "Call Crisis Hotline",
+          "parameters": {
+            "phone_number": "988"
+          }
+        },
+        {
+          "id": "emergency_haptic",
+          "type": "haptic",
+          "title": "Emergency Haptic",
+          "parameters": {
+            "intensity": "heavy",
+            "pattern": "urgent"
+          }
+        }
+      ],
+      "nextNodes": {
+        "default": "follow_up"
+      }
+    },
+    {
+      "id": "support_contact",
+      "type": "action",
+      "title": "Support Contact",
+      "content": "This is a moderate crisis. Would you like to contact a support person or crisis counselor?",
+      "actions": [
+        {
+          "id": "contact_support",
+          "type": "call",
+          "title": "Contact Support",
+          "parameters": {
+            "contact_type": "emergency_contacts"
+          }
+        },
+        {
+          "id": "support_haptic",
+          "type": "haptic",
+          "title": "Support Haptic",
+          "parameters": {
+            "intensity": "medium",
+            "pattern": "gentle"
+          }
+        }
+      ],
+      "nextNodes": {
+        "default": "coping_strategies"
+      }
+    },
+    {
+      "id": "coping_strategies",
+      "type": "resource",
+      "title": "Coping Strategies",
+      "content": "Here are some immediate coping strategies: 1) Deep breathing, 2) Grounding techniques, 3) Call a friend, 4) Distract yourself with an activity",
+      "actions": [
+        {
+          "id": "coping_haptic",
+          "type": "haptic",
+          "title": "Coping Haptic",
+          "parameters": {
+            "intensity": "light",
+            "pattern": "calm"
+          }
+        }
+      ],
+      "nextNodes": {
+        "default": "follow_up"
+      }
+    },
+    {
+      "id": "follow_up",
+      "type": "question",
+      "title": "Follow-up Check",
+      "content": "How are you feeling now? Do you need additional support?",
+      "actions": [
+        {
+          "id": "followup_haptic",
+          "type": "haptic",
+          "title": "Follow-up Haptic",
+          "parameters": {
+            "intensity": "light",
+            "pattern": "gentle"
+          }
+        }
+      ],
+      "conditions": [
+        {
+          "id": "need_more_help",
+          "type": "userResponse",
+          "parameters": {
+            "keywords": ["yes", "help", "support", "bad", "worse"]
+          }
+        },
+        {
+          "id": "feeling_better",
+          "type": "userResponse",
+          "parameters": {
+            "keywords": ["better", "okay", "fine", "good", "no"]
+          }
+        }
+      ],
+      "nextNodes": {
+        "need_more_help": "additional_support",
+        "feeling_better": "flow_complete"
+      }
+    },
+    {
+      "id": "additional_support",
+      "type": "resource",
+      "title": "Additional Support",
+      "content": "You can access additional support through: 1) Crisis hotlines, 2) Mental health professionals, 3) Support groups, 4) Emergency services if needed",
+      "actions": [
+        {
+          "id": "support_resources",
+          "type": "notification",
+          "title": "Support Resources",
+          "parameters": {
+            "message": "Additional support resources available",
+            "action": "show_resources"
+          }
+        }
+      ],
+      "nextNodes": {
+        "default": "flow_complete"
+      }
+    },
+    {
+      "id": "flow_complete",
+      "type": "instruction",
+      "title": "Flow Complete",
+      "content": "Thank you for using the panic response flow. Remember, help is always available. Take care of yourself.",
+      "actions": [
+        {
+          "id": "completion_haptic",
+          "type": "haptic",
+          "title": "Completion Haptic",
+          "parameters": {
+            "intensity": "light",
+            "pattern": "success"
+          }
+        }
+      ],
+      "nextNodes": {}
+    }
+  ],
+  "metadata": {
+    "author": "Compass AI Team",
+    "tags": ["panic", "emergency", "crisis", "immediate"],
+    "difficulty": "easy",
+    "estimatedDuration": 300,
+    "emergencyLevel": "high",
+    "requiresLocation": true,
+    "requiresContacts": true
+  },
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z"
+} 
