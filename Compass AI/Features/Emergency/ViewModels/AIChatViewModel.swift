@@ -161,6 +161,15 @@ struct ChatMessage: Identifiable {
     let content: String
     let isUser: Bool
     let timestamp = Date()
+    let messageType: ConversationMessageType
+    
+    init(content: String, isUser: Bool = false, messageType: ConversationMessageType = .text) {
+        self.id = UUID()
+        self.content = content
+        self.isUser = isUser
+        self.timestamp = Date()
+        self.messageType = messageType
+    }
 }
 
 // Crisis Triggers - using TriggerType from TriggerDetector

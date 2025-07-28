@@ -538,4 +538,87 @@ enum VariableType: String, Codable, CaseIterable {
             return "URL"
         }
     }
+}
+
+// MARK: - Conversational Flow Models
+
+/// Represents a conversational flow node
+struct ConversationalNode: Codable {
+    let id: String
+    let type: String
+    let messages: [String]
+    let delay: Double?
+    let options: [ConversationOption]?
+    let action: String?
+    let nextNode: String?
+    
+    init(
+        id: String,
+        type: String,
+        messages: [String],
+        delay: Double? = nil,
+        options: [ConversationOption]? = nil,
+        action: String? = nil,
+        nextNode: String? = nil
+    ) {
+        self.id = id
+        self.type = type
+        self.messages = messages
+        self.delay = delay
+        self.options = options
+        self.action = action
+        self.nextNode = nextNode
+    }
+}
+
+/// Represents a conversation option/choice
+struct ConversationOption: Codable {
+    let text: String
+    let nextNode: String
+    
+    init(text: String, nextNode: String) {
+        self.text = text
+        self.nextNode = nextNode
+    }
+}
+
+/// Represents a conversational flow
+struct ConversationalFlow: Codable {
+    let id: String
+    let type: String
+    let title: String
+    let description: String
+    let version: String
+    let startNode: String
+    let nodes: [ConversationalNode]
+    let metadata: FlowMetadata
+    
+    init(
+        id: String,
+        type: String,
+        title: String,
+        description: String,
+        version: String,
+        startNode: String,
+        nodes: [ConversationalNode],
+        metadata: FlowMetadata
+    ) {
+        self.id = id
+        self.type = type
+        self.title = title
+        self.description = description
+        self.version = version
+        self.startNode = startNode
+        self.nodes = nodes
+        self.metadata = metadata
+    }
+}
+
+/// Represents a conversation message type
+enum ConversationMessageType {
+    case text
+    case action
+    case breathing
+    case grounding
+    case contacts
 } 

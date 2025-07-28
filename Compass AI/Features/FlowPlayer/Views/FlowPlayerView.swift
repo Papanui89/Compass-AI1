@@ -1,520 +1,469 @@
 import SwiftUI
 import UIKit
+import AVFoundation
 
 struct FlowPlayerView: View {
     let crisisType: CrisisType
     @Environment(\.dismiss) var dismiss
-    @StateObject private var flowEngine = FlowEngine()
-    @State private var currentStep = 0
-    @State private var isFlowActive = false
-    @State private var progress: Double = 0.0
-    @State private var showSkipAlert = false
-    @State private var showExitAlert = false
-    @State private var timeEstimate = "2 minutes to calm"
+    @StateObject private var viewModel = ConversationalFlowViewModel()
+    @State private var messages: [ChatMessage] = []
+    @State private var showingOptions = false
+    @State private var currentOptions: [ConversationOption] = []
+    @State private var isTyping = false
+    @State private var currentMessageIndex = 0
+    @State private var showingPauseMenu = false
+    @State private var showingVoiceToggle = false
+    @State private var isVoiceEnabled = false
+    @State private var synthesizer = AVSpeechSynthesizer()
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                // Background gradient
-                LinearGradient(
-                    colors: [crisisType.color.opacity(0.1), Color(.systemBackground)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-                
-                VStack(spacing: 0) {
-                    if isFlowActive {
-                        // Active Flow View
-                        ActiveFlowView(
-                            crisisType: crisisType,
-                            currentStep: $currentStep,
-                            progress: $progress,
-                            timeEstimate: $timeEstimate,
-                            showSkipAlert: $showSkipAlert,
-                            showExitAlert: $showExitAlert,
-                            onComplete: {
-                                isFlowActive = false
-                                HapticService.shared.notification(.success)
-                            }
-                        )
-                    } else {
-                        // Flow Selection View
-                        FlowSelectionView(
-                            crisisType: crisisType,
-                            onStartFlow: {
-                                isFlowActive = true
-                                currentStep = 0
-                                progress = 0.0
-                                HapticService.shared.impact(.medium)
-                            }
-                        )
-                    }
-                }
-            }
-            .navigationTitle("What to Do")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(
-                leading: Button("Exit") {
-                    showExitAlert = true
-                }
-                .foregroundColor(.red),
-                trailing: Button("Done") {
-                    dismiss()
-                }
+        ZStack {
+            // Soft gradient background
+            LinearGradient(
+                colors: [
+                    crisisType.color.opacity(0.1),
+                    Color(.systemBackground)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
             )
-        }
-        .alert("Skip this step?", isPresented: $showSkipAlert) {
-            Button("Skip") {
-                if currentStep < crisisType.steps.count - 1 {
-                    currentStep += 1
-                    progress = Double(currentStep + 1) / Double(crisisType.steps.count)
-                    HapticService.shared.impact(.light)
-                }
-            }
-            Button("Continue", role: .cancel) { }
-        } message: {
-            Text("This step might be helpful, but you can skip if needed.")
-        }
-        .alert("Exit Crisis Guide?", isPresented: $showExitAlert) {
-            Button("Exit", role: .destructive) {
-                dismiss()
-            }
-            Button("Continue", role: .cancel) { }
-        } message: {
-            Text("Are you sure you want to exit? Help is still available.")
-        }
-    }
-}
-
-// MARK: - Flow Selection View
-struct FlowSelectionView: View {
-    let crisisType: CrisisType
-    let onStartFlow: () -> Void
-    
-    var body: some View {
-        VStack(spacing: 25) {
-            // Crisis type header with animation
-            VStack(spacing: 15) {
-                ZStack {
-                    Circle()
-                        .fill(crisisType.color.opacity(0.2))
-                        .frame(width: 120, height: 120)
-                    
-                    Image(systemName: crisisType.icon)
-                        .font(.system(size: 50))
-                        .foregroundColor(crisisType.color)
-                }
-                .scaleEffect(1.0)
-                .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: UUID())
-                
-                Text(crisisType.name)
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .multilineTextAlignment(.center)
-                
-                Text(crisisType.description)
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-            }
-            .padding()
+            .ignoresSafeArea()
             
-            // Step preview with icons
-            VStack(spacing: 15) {
-                Text("What we'll do together:")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                ForEach(Array(crisisType.steps.enumerated()), id: \.offset) { index, step in
-                    StepPreviewCard(step: step, stepNumber: index + 1, crisisType: crisisType)
-                }
-            }
-            .padding(.horizontal)
-            
-            Spacer()
-            
-            // Action buttons
-            VStack(spacing: 15) {
-                Button(action: onStartFlow) {
-                    HStack(spacing: 10) {
-                        Image(systemName: "play.fill")
+            VStack(spacing: 0) {
+                // Top navigation bar
+                HStack {
+                    Button(action: { showingPauseMenu = true }) {
+                        Image(systemName: "xmark.circle.fill")
                             .font(.title2)
-                        Text("Start Guided Flow")
-                            .font(.title3)
-                            .fontWeight(.bold)
+                            .foregroundColor(.secondary)
                     }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(
-                        LinearGradient(
-                            colors: [crisisType.color, crisisType.color.opacity(0.8)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(20)
-                    .shadow(color: crisisType.color.opacity(0.3), radius: 8, x: 0, y: 4)
-                }
-                
-                Button("I need immediate help") {
-                    AppState.shared.activateEmergencyMode(for: crisisType)
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(
-                    LinearGradient(
-                        colors: [Color.red, Color.red.opacity(0.8)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .cornerRadius(20)
-                .font(.title3)
-                .fontWeight(.bold)
-            }
-            .padding()
-        }
-    }
-}
-
-// MARK: - Active Flow View
-struct ActiveFlowView: View {
-    let crisisType: CrisisType
-    @Binding var currentStep: Int
-    @Binding var progress: Double
-    @Binding var timeEstimate: String
-    @Binding var showSkipAlert: Bool
-    @Binding var showExitAlert: Bool
-    let onComplete: () -> Void
-    
-    @State private var showContinueButton = false
-    @State private var stepStartTime = Date()
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            // Header with step indicators
-            VStack(spacing: 15) {
-                // Step indicators
-                StepIndicatorsView(
-                    totalSteps: crisisType.steps.count,
-                    currentStep: currentStep,
-                    progress: progress
-                )
-                
-                // Time estimate
-                Text(timeEstimate)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-            }
-            .padding()
-            
-            // Main content area
-            ScrollView {
-                VStack(spacing: 25) {
-                    // Step content with visual elements
-                    StepContentView(
-                        step: crisisType.steps[currentStep],
-                        stepNumber: currentStep + 1,
-                        crisisType: crisisType,
-                        showContinueButton: $showContinueButton
-                    )
                     
-                    // Interactive action if available
-                    if currentStep < crisisType.steps.count {
-                        FlowActionView(action: FlowActionData(type: getActionTypeForStep(currentStep)))
+                    Spacer()
+                    
+                    if isVoiceEnabled {
+                        Button(action: { isVoiceEnabled.toggle() }) {
+                            Image(systemName: "speaker.wave.2.fill")
+                                .font(.title2)
+                                .foregroundColor(.blue)
+                        }
+                    } else {
+                        Button(action: { isVoiceEnabled.toggle() }) {
+                            Image(systemName: "speaker.slash.fill")
+                                .font(.title2)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
                 .padding()
-            }
-            
-            Spacer()
-            
-            // Navigation buttons
-            HStack(spacing: 15) {
-                // Previous button
-                Button("Previous") {
-                    if currentStep > 0 {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            currentStep -= 1
-                            updateProgress()
+                .background(Color(.systemBackground).opacity(0.8))
+                
+                // Chat messages area
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(messages) { message in
+                                ChatBubbleView(message: message)
+                                    .id(message.id)
+                            }
+                            
+                            // Typing indicator
+                            if isTyping {
+                                TypingIndicatorView()
+                                    .id("typing")
+                            }
                         }
-                        HapticService.shared.impact(.light)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 8)
+                    }
+                    .onChange(of: messages.count) { _ in
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            proxy.scrollTo(messages.last?.id ?? "typing", anchor: .bottom)
+                        }
                     }
                 }
-                .disabled(currentStep == 0)
-                .padding(.vertical, 12)
-                .padding(.horizontal, 20)
-                .background(Color(.systemGray5))
-                .foregroundColor(.primary)
-                .cornerRadius(15)
-                .font(.body)
-                .fontWeight(.medium)
                 
-                // Skip button
-                Button("Skip") {
-                    showSkipAlert = true
-                }
-                .padding(.vertical, 12)
-                .padding(.horizontal, 20)
-                .background(Color.orange.opacity(0.1))
-                .foregroundColor(.orange)
-                .cornerRadius(15)
-                .font(.body)
-                .fontWeight(.medium)
-                
-                // Continue/Complete button
-                Button(currentStep == crisisType.steps.count - 1 ? "Complete" : "Continue") {
-                    if currentStep < crisisType.steps.count - 1 {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            currentStep += 1
-                            updateProgress()
+                // Options area
+                if showingOptions && !currentOptions.isEmpty {
+                    VStack(spacing: 12) {
+                        ForEach(currentOptions, id: \.text) { option in
+                            Button(action: {
+                                selectOption(option)
+                            }) {
+                                Text(option.text)
+                                    .font(.body)
+                                    .foregroundColor(.primary)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 12)
+                                    .frame(maxWidth: .infinity)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(Color(.systemGray6))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                            )
+                                    )
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        HapticService.shared.impact(.light)
-                    } else {
-                        onComplete()
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
+                    .background(Color(.systemBackground).opacity(0.9))
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                .opacity(showContinueButton ? 1.0 : 0.6)
-                .padding(.vertical, 12)
-                .padding(.horizontal, 20)
-                .background(
-                    LinearGradient(
-                        colors: [crisisType.color, crisisType.color.opacity(0.8)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .foregroundColor(.white)
-                .cornerRadius(15)
-                .font(.body)
-                .fontWeight(.semibold)
             }
-            .padding()
         }
         .onAppear {
-            updateProgress()
-            stepStartTime = Date()
-            showContinueButton = false
-            
-            // Show continue button after 30 seconds for guided steps
-            DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    showContinueButton = true
-                }
-            }
+            startConversation()
         }
-        .onChange(of: currentStep) { _ in
-            stepStartTime = Date()
-            showContinueButton = false
-            
-            // Show continue button after 30 seconds for guided steps
-            DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    showContinueButton = true
-                }
+        .alert("Pause Conversation", isPresented: $showingPauseMenu) {
+            Button("Resume") { }
+            Button("Exit", role: .destructive) {
+                dismiss()
             }
+        } message: {
+            Text("Take a moment if you need to. I'll be here when you're ready.")
         }
     }
     
-    private func updateProgress() {
+    private func startConversation() {
+        Task {
+            await loadConversationalFlow()
+            await displayNextNode()
+        }
+    }
+    
+    private func loadConversationalFlow() async {
+        // Load the conversational flow from JSON
+        guard let url = Bundle.main.url(forResource: "panic", withExtension: "json", subdirectory: "Resources/Flows") else {
+            addMessage("I'm here to help you through this.", isFromUser: false)
+            return
+        }
+        
+        do {
+            let data = try Data(contentsOf: url)
+            let flow = try JSONDecoder().decode(ConversationalFlow.self, from: data)
+            viewModel.setFlow(flow)
+        } catch {
+            addMessage("I'm here to help you through this.", isFromUser: false)
+        }
+    }
+    
+    private func displayNextNode() async {
+        guard let currentNode = viewModel.getCurrentNode() else { return }
+        
+        // Display messages one by one with typing animation
+        for (index, message) in currentNode.messages.enumerated() {
+            if index > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(currentNode.delay ?? 1.0) * 1_000_000_000)
+            }
+            
+            await MainActor.run {
+                addMessage(message, isFromUser: false)
+                if isVoiceEnabled {
+                    speakMessage(message)
+                }
+            }
+        }
+        
+        // Show options if available
+        if let options = currentNode.options {
+            await MainActor.run {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    currentOptions = options
+                    showingOptions = true
+                }
+            }
+        } else if let action = currentNode.action {
+            await executeAction(action)
+            if let nextNode = currentNode.nextNode {
+                viewModel.setCurrentNode(nextNode)
+                await displayNextNode()
+            }
+        } else if let nextNode = currentNode.nextNode {
+            viewModel.setCurrentNode(nextNode)
+            await displayNextNode()
+        }
+    }
+    
+    private func selectOption(_ option: ConversationOption) {
+        // Add user's choice to chat
+        addMessage(option.text, isFromUser: true)
+        
+        // Hide options
         withAnimation(.easeInOut(duration: 0.3)) {
-            progress = Double(currentStep + 1) / Double(crisisType.steps.count)
+            showingOptions = false
+            currentOptions = []
+        }
+        
+        // Move to next node
+        viewModel.setCurrentNode(option.nextNode)
+        
+        // Continue conversation
+        Task {
+            await displayNextNode()
         }
     }
     
-    private func getActionTypeForStep(_ step: Int) -> String {
-        // Map steps to action types based on content
-        let stepContent = crisisType.steps[step].lowercased()
-        
-        if stepContent.contains("breath") || stepContent.contains("inhale") || stepContent.contains("exhale") {
-            return "breathing_animation"
-        } else if stepContent.contains("see") || stepContent.contains("touch") || stepContent.contains("hear") {
-            return "grounding_checklist"
-        } else if stepContent.contains("call") || stepContent.contains("988") || stepContent.contains("911") {
-            return "show_contacts"
-        } else {
-            return "statement"
+    private func executeAction(_ action: String) async {
+        switch action {
+        case "breathing_exercise":
+            await MainActor.run {
+                addMessage("Let's breathe together...", isFromUser: false, messageType: .breathing)
+            }
+            // Show breathing animation
+            try? await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
+            
+        case "grounding_exercise":
+            await MainActor.run {
+                addMessage("Look around you... what do you see?", isFromUser: false, messageType: .grounding)
+            }
+            // Show grounding exercise
+            try? await Task.sleep(nanoseconds: 15_000_000_000) // 15 seconds
+            
+        case "show_contacts":
+            await MainActor.run {
+                addMessage("Who would you like to call?", isFromUser: false, messageType: .contacts)
+            }
+            // Show contacts
+            
+        case "save_techniques":
+            await MainActor.run {
+                addMessage("I've saved these techniques for you!", isFromUser: false)
+            }
+            
+        case "completion_haptic":
+            HapticService.shared.impact(.success)
+            
+        default:
+            break
+        }
+    }
+    
+    private func addMessage(_ text: String, isFromUser: Bool, messageType: ConversationMessageType = .text) {
+        let message = ChatMessage(content: text, isUser: isFromUser, messageType: messageType)
+        withAnimation(.easeInOut(duration: 0.3)) {
+            messages.append(message)
+        }
+        HapticService.shared.impact(.light)
+    }
+    
+    private func speakMessage(_ text: String) {
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+        utterance.rate = 0.5
+        utterance.pitchMultiplier = 1.1
+        utterance.volume = 0.8
+        synthesizer.speak(utterance)
+    }
+}
+
+// MARK: - Chat Bubble View
+struct ChatBubbleView: View {
+    let message: ChatMessage
+    
+    var body: some View {
+        HStack {
+            if message.isFromUser {
+                Spacer()
+            }
+            
+            VStack(alignment: message.isFromUser ? .trailing : .leading, spacing: 4) {
+                switch message.messageType {
+                case .text:
+                    Text(message.text)
+                        .font(.body)
+                        .foregroundColor(message.isFromUser ? .white : .primary)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(message.isFromUser ? Color.blue : Color(.systemGray6))
+                        )
+                        .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: message.isFromUser ? .trailing : .leading)
+                        
+                case .breathing:
+                    BreathingMessageView(text: message.text)
+                    
+                case .grounding:
+                    GroundingMessageView(text: message.text)
+                    
+                case .contacts:
+                    ContactsMessageView(text: message.text)
+                    
+                case .action:
+                    ActionMessageView(text: message.text)
+                }
+            }
+            
+            if !message.isFromUser {
+                Spacer()
+            }
         }
     }
 }
 
-// MARK: - Step Indicators View
-struct StepIndicatorsView: View {
-    let totalSteps: Int
-    let currentStep: Int
-    let progress: Double
+// MARK: - Typing Indicator
+struct TypingIndicatorView: View {
+    @State private var dotOffset: CGFloat = 0
     
     var body: some View {
-        VStack(spacing: 10) {
-            // Step text
-            Text("Step \(currentStep + 1) of \(totalSteps)")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
-            
-            // Step dots
-            HStack(spacing: 8) {
-                ForEach(0..<totalSteps, id: \.self) { index in
+        HStack {
+            HStack(spacing: 4) {
+                ForEach(0..<3) { index in
                     Circle()
-                        .fill(index <= currentStep ? Color.blue : Color(.systemGray4))
-                        .frame(width: index == currentStep ? 12 : 8, height: index == currentStep ? 12 : 8)
-                        .scaleEffect(index == currentStep ? 1.2 : 1.0)
-                        .animation(.easeInOut(duration: 0.3), value: currentStep)
+                        .fill(Color.gray)
+                        .frame(width: 8, height: 8)
+                        .offset(y: dotOffset)
+                        .animation(
+                            Animation.easeInOut(duration: 0.6)
+                                .repeatForever()
+                                .delay(Double(index) * 0.2),
+                            value: dotOffset
+                        )
                 }
             }
-        }
-    }
-}
-
-// MARK: - Step Content View
-struct StepContentView: View {
-    let step: String
-    let stepNumber: Int
-    let crisisType: CrisisType
-    @Binding var showContinueButton: Bool
-    
-    @State private var iconScale: CGFloat = 1.0
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            // Icon with animation
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [crisisType.color.opacity(0.2), crisisType.color.opacity(0.1)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 80, height: 80)
-                
-                Image(systemName: getIconForStep(step))
-                    .font(.system(size: 35))
-                    .foregroundColor(crisisType.color)
-                    .scaleEffect(iconScale)
-            }
-            .onAppear {
-                withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
-                    iconScale = 1.1
-                }
-            }
-            
-            // Step text with encouraging message
-            VStack(spacing: 15) {
-                Text(getEncouragingMessage(step))
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
-                    .multilineTextAlignment(.center)
-                
-                Text(step)
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-            }
-            .padding(.horizontal)
-        }
-        .padding(.vertical, 30)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
-        )
-        .padding(.horizontal)
-    }
-    
-    private func getIconForStep(_ step: String) -> String {
-        let stepLower = step.lowercased()
-        
-        if stepLower.contains("breath") || stepLower.contains("inhale") || stepLower.contains("exhale") {
-            return "🫁"
-        } else if stepLower.contains("see") || stepLower.contains("touch") || stepLower.contains("hear") {
-            return "👁️"
-        } else if stepLower.contains("call") || stepLower.contains("988") || stepLower.contains("911") {
-            return "📞"
-        } else if stepLower.contains("comfort") || stepLower.contains("position") {
-            return "❤️"
-        } else if stepLower.contains("remind") || stepLower.contains("pass") {
-            return "💭"
-        } else {
-            return "✨"
-        }
-    }
-    
-    private func getEncouragingMessage(_ step: String) -> String {
-        let stepLower = step.lowercased()
-        
-        if stepLower.contains("breath") || stepLower.contains("inhale") || stepLower.contains("exhale") {
-            return "Let's slow down your breathing"
-        } else if stepLower.contains("see") || stepLower.contains("touch") || stepLower.contains("hear") {
-            return "Let's ground yourself"
-        } else if stepLower.contains("call") || stepLower.contains("988") || stepLower.contains("911") {
-            return "You're not alone - help is here"
-        } else if stepLower.contains("comfort") || stepLower.contains("position") {
-            return "Get comfortable"
-        } else if stepLower.contains("remind") || stepLower.contains("pass") {
-            return "Remember: This will pass"
-        } else {
-            return "You're doing great"
-        }
-    }
-}
-
-// MARK: - Step Preview Card
-struct StepPreviewCard: View {
-    let step: String
-    let stepNumber: Int
-    let crisisType: CrisisType
-    
-    var body: some View {
-        HStack(alignment: .top, spacing: 15) {
-            // Step number with icon
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [crisisType.color, crisisType.color.opacity(0.7)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 40, height: 40)
-                
-                Text("\(stepNumber)")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-            }
-            
-            Text(step)
-                .font(.body)
-                .multilineTextAlignment(.leading)
-                .foregroundColor(.primary)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(Color(.systemGray6))
+            )
             
             Spacer()
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 15)
-                .fill(Color(.systemGray6))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 15)
-                        .stroke(crisisType.color.opacity(0.2), lineWidth: 1)
-                )
-        )
+        .onAppear {
+            dotOffset = -5
+        }
     }
 }
 
+// MARK: - Special Message Views
+struct BreathingMessageView: View {
+    let text: String
+    @State private var scale: CGFloat = 1.0
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            Text(text)
+                .font(.body)
+                .foregroundColor(.primary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(Color(.systemGray6))
+                )
+            
+            // Animated breathing circle
+            ZStack {
+                Circle()
+                    .stroke(Color.blue.opacity(0.3), lineWidth: 2)
+                    .frame(width: 80, height: 80)
+                
+                Circle()
+                    .fill(Color.blue.opacity(0.2))
+                    .frame(width: 60, height: 60)
+                    .scaleEffect(scale)
+                    .animation(
+                        Animation.easeInOut(duration: 4)
+                            .repeatForever(autoreverses: true),
+                        value: scale
+                    )
+            }
+        }
+        .onAppear {
+            scale = 1.5
+        }
+    }
+}
+
+struct GroundingMessageView: View {
+    let text: String
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Text(text)
+                .font(.body)
+                .foregroundColor(.primary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(Color(.systemGray6))
+                )
+            
+            Text("👁️ Look around • 🖐️ Touch something • 👂 Listen")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+    }
+}
+
+struct ContactsMessageView: View {
+    let text: String
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Text(text)
+                .font(.body)
+                .foregroundColor(.primary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(Color(.systemGray6))
+                )
+            
+            Text("📞 Tap to call someone you trust")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+    }
+}
+
+struct ActionMessageView: View {
+    let text: String
+    
+    var body: some View {
+        Text(text)
+            .font(.body)
+            .foregroundColor(.primary)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(Color.green.opacity(0.1))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                    )
+            )
+    }
+}
+
+// MARK: - View Model
+class ConversationalFlowViewModel: ObservableObject {
+    private var flow: ConversationalFlow?
+    private var currentNodeId: String?
+    
+    func setFlow(_ flow: ConversationalFlow) {
+        self.flow = flow
+        self.currentNodeId = flow.startNode
+    }
+    
+    func getCurrentNode() -> ConversationalNode? {
+        guard let flow = flow, let currentNodeId = currentNodeId else { return nil }
+        return flow.nodes.first { $0.id == currentNodeId }
+    }
+    
+    func setCurrentNode(_ nodeId: String) {
+        self.currentNodeId = nodeId
+    }
+}
+
+// MARK: - Preview
 #Preview {
-    FlowPlayerView(crisisType: .panicAttack)
+    FlowPlayerView(crisisType: .panic)
 } 

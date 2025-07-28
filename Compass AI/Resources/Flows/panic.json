@@ -1,374 +1,297 @@
 {
   "id": "panic_flow",
   "type": "panic",
-  "title": "Panic Response Flow",
-  "description": "Immediate response flow for panic situations",
-  "version": "1.0",
-  "startNode": "panic_assessment",
+  "title": "Panic Attack Support",
+  "description": "A caring friend to help you through panic attacks",
+  "version": "2.0",
+  "startNode": "welcome",
   "nodes": [
     {
-      "id": "panic_assessment",
-      "type": "question",
-      "title": "Are you in immediate danger?",
-      "content": "Please answer quickly: Are you currently in immediate physical danger?",
-      "actions": [
-        {
-          "id": "haptic_alert",
-          "type": "haptic",
-          "title": "Alert Haptic",
-          "parameters": {
-            "intensity": "heavy",
-            "pattern": "urgent"
-          }
-        }
+      "id": "welcome",
+      "type": "conversation",
+      "messages": [
+        "I'm here with you ❤️",
+        "You're having a panic attack, and that's okay",
+        "I'll help you through this, step by step"
       ],
-      "conditions": [
+      "delay": 1.5,
+      "nextNode": "check_safety"
+    },
+    {
+      "id": "check_safety",
+      "type": "conversation",
+      "messages": [
+        "First, let's make sure you're safe",
+        "Are you somewhere you can sit down?"
+      ],
+      "options": [
         {
-          "id": "danger_yes",
-          "type": "userResponse",
-          "parameters": {
-            "expected": "yes"
-          }
+          "text": "Yes, I'm safe",
+          "nextNode": "breathing_intro"
         },
         {
-          "id": "danger_no",
-          "type": "userResponse",
-          "parameters": {
-            "expected": "no"
-          }
+          "text": "No, I need to find somewhere",
+          "nextNode": "find_safety"
         }
-      ],
-      "nextNodes": {
-        "danger_yes": "immediate_emergency",
-        "danger_no": "safety_check"
-      }
+      ]
     },
     {
-      "id": "immediate_emergency",
-      "type": "emergency",
-      "title": "Immediate Emergency Response",
-      "content": "You are in immediate danger. We are calling emergency services now.",
-      "actions": [
+      "id": "find_safety",
+      "type": "conversation",
+      "messages": [
+        "That's totally okay!",
+        "Can you find a quiet spot nearby?",
+        "Even a bathroom or hallway works"
+      ],
+      "options": [
         {
-          "id": "call_911",
-          "type": "call",
-          "title": "Call 911",
-          "parameters": {
-            "phone_number": "911"
-          }
+          "text": "Found a spot",
+          "nextNode": "breathing_intro"
         },
         {
-          "id": "location_share",
-          "type": "location",
-          "title": "Share Location",
-          "parameters": {
-            "share_with": "emergency_services"
-          }
+          "text": "Still looking",
+          "nextNode": "safety_encouragement"
+        }
+      ]
+    },
+    {
+      "id": "safety_encouragement",
+      "type": "conversation",
+      "messages": [
+        "You're doing great, just keep looking",
+        "Anywhere you can sit or lean is perfect",
+        "Take your time, I'm not going anywhere"
+      ],
+      "options": [
+        {
+          "text": "Okay, I found somewhere",
+          "nextNode": "breathing_intro"
+        }
+      ]
+    },
+    {
+      "id": "breathing_intro",
+      "type": "conversation",
+      "messages": [
+        "Perfect! You're safe 🙌",
+        "Now let's slow down that racing heart",
+        "I'll breathe with you..."
+      ],
+      "action": "breathing_exercise",
+      "nextNode": "breathing_check"
+    },
+    {
+      "id": "breathing_check",
+      "type": "conversation",
+      "messages": [
+        "Great job with the breathing!",
+        "How are you feeling now?"
+      ],
+      "options": [
+        {
+          "text": "A little better",
+          "nextNode": "grounding_intro"
         },
         {
-          "id": "emergency_haptic",
-          "type": "haptic",
-          "title": "Emergency Haptic",
-          "parameters": {
-            "intensity": "critical",
-            "pattern": "continuous"
-          }
-        }
-      ],
-      "nextNodes": {}
-    },
-    {
-      "id": "safety_check",
-      "type": "question",
-      "title": "Safety Assessment",
-      "content": "Are you in a safe location? Can you move to a safer place?",
-      "actions": [
-        {
-          "id": "calm_haptic",
-          "type": "haptic",
-          "title": "Calm Haptic",
-          "parameters": {
-            "intensity": "medium",
-            "pattern": "gentle"
-          }
-        }
-      ],
-      "conditions": [
-        {
-          "id": "safe_yes",
-          "type": "userResponse",
-          "parameters": {
-            "expected": "yes"
-          }
+          "text": "Still panicking",
+          "nextNode": "still_panicking"
         },
         {
-          "id": "safe_no",
-          "type": "userResponse",
-          "parameters": {
-            "expected": "no"
-          }
+          "text": "Much better",
+          "nextNode": "feeling_better"
         }
-      ],
-      "nextNodes": {
-        "safe_yes": "breathing_exercise",
-        "safe_no": "safety_planning"
-      }
+      ]
     },
     {
-      "id": "breathing_exercise",
-      "type": "instruction",
-      "title": "Breathing Exercise",
-      "content": "Let's take a moment to breathe. Follow this pattern: Inhale for 4 counts, hold for 4, exhale for 4, hold for 4. Repeat 3 times.",
-      "actions": [
+      "id": "still_panicking",
+      "type": "conversation",
+      "messages": [
+        "That's okay, panic attacks can be stubborn",
+        "Let's try something different",
+        "Sometimes we need to ground ourselves first"
+      ],
+      "nextNode": "grounding_intro"
+    },
+    {
+      "id": "grounding_intro",
+      "type": "conversation",
+      "messages": [
+        "Let's ground you in the present moment",
+        "Look around you... what do you see?"
+      ],
+      "action": "grounding_exercise",
+      "nextNode": "grounding_check"
+    },
+    {
+      "id": "grounding_check",
+      "type": "conversation",
+      "messages": [
+        "Amazing! You're really doing this",
+        "How's your heart rate feeling now?"
+      ],
+      "options": [
         {
-          "id": "breathing_audio",
-          "type": "audio",
-          "title": "Breathing Guide",
-          "parameters": {
-            "audio_file": "breathing_guide.mp3",
-            "duration": "60"
-          }
+          "text": "Slowing down",
+          "nextNode": "comfort_intro"
         },
         {
-          "id": "gentle_haptic",
-          "type": "haptic",
-          "title": "Gentle Haptic",
-          "parameters": {
-            "intensity": "light",
-            "pattern": "breathing"
-          }
+          "text": "Still racing",
+          "nextNode": "comfort_intro"
         }
-      ],
-      "nextNodes": {
-        "default": "crisis_assessment"
-      }
+      ]
     },
     {
-      "id": "safety_planning",
-      "type": "instruction",
-      "title": "Safety Planning",
-      "content": "If you're not in a safe location, try to move to a safer place. Can you identify a safe location nearby?",
-      "actions": [
-        {
-          "id": "safety_haptic",
-          "type": "haptic",
-          "title": "Safety Haptic",
-          "parameters": {
-            "intensity": "medium",
-            "pattern": "alert"
-          }
-        }
+      "id": "comfort_intro",
+      "type": "conversation",
+      "messages": [
+        "You're doing so well 💪",
+        "Let's give you some comfort",
+        "Would you like to call someone?"
       ],
-      "nextNodes": {
-        "default": "crisis_assessment"
-      }
-    },
-    {
-      "id": "crisis_assessment",
-      "type": "question",
-      "title": "Crisis Level Assessment",
-      "content": "On a scale of 1-10, how severe is your current crisis? (1 = mild, 10 = life-threatening)",
-      "actions": [
+      "options": [
         {
-          "id": "assessment_haptic",
-          "type": "haptic",
-          "title": "Assessment Haptic",
-          "parameters": {
-            "intensity": "medium",
-            "pattern": "single"
-          }
-        }
-      ],
-      "conditions": [
-        {
-          "id": "severe_crisis",
-          "type": "userResponse",
-          "parameters": {
-            "range": "8-10"
-          }
+          "text": "Yes, I want to call someone",
+          "nextNode": "call_support"
         },
         {
-          "id": "moderate_crisis",
-          "type": "userResponse",
-          "parameters": {
-            "range": "4-7"
-          }
+          "text": "No, I'm okay",
+          "nextNode": "final_check"
+        }
+      ]
+    },
+    {
+      "id": "call_support",
+      "type": "conversation",
+      "messages": [
+        "That's a great idea!",
+        "Who would you like to call?"
+      ],
+      "action": "show_contacts",
+      "nextNode": "final_check"
+    },
+    {
+      "id": "final_check",
+      "type": "conversation",
+      "messages": [
+        "You made it through! That took real strength 💪",
+        "How are you feeling now?"
+      ],
+      "options": [
+        {
+          "text": "Much better",
+          "nextNode": "success_completion"
         },
         {
-          "id": "mild_crisis",
-          "type": "userResponse",
-          "parameters": {
-            "range": "1-3"
-          }
+          "text": "Still shaky",
+          "nextNode": "gentle_encouragement"
         }
-      ],
-      "nextNodes": {
-        "severe_crisis": "emergency_contact",
-        "moderate_crisis": "support_contact",
-        "mild_crisis": "coping_strategies"
-      }
+      ]
     },
     {
-      "id": "emergency_contact",
-      "type": "action",
-      "title": "Emergency Contact",
-      "content": "This is a severe crisis. We recommend contacting emergency services or a crisis hotline.",
-      "actions": [
+      "id": "gentle_encouragement",
+      "type": "conversation",
+      "messages": [
+        "That's totally normal",
+        "Panic attacks can leave you feeling drained",
+        "Just rest for a bit, you've done amazing"
+      ],
+      "nextNode": "success_completion"
+    },
+    {
+      "id": "feeling_better",
+      "type": "conversation",
+      "messages": [
+        "That's wonderful! 🎉",
+        "You handled that so well",
+        "Your body is already starting to calm down"
+      ],
+      "nextNode": "success_completion"
+    },
+    {
+      "id": "success_completion",
+      "type": "conversation",
+      "messages": [
+        "You did it! You got through a panic attack",
+        "That takes real courage and strength",
+        "Would you like to:"
+      ],
+      "options": [
         {
-          "id": "call_crisis_hotline",
-          "type": "call",
-          "title": "Call Crisis Hotline",
-          "parameters": {
-            "phone_number": "988"
-          }
+          "text": "Save these techniques",
+          "nextNode": "save_techniques"
         },
         {
-          "id": "emergency_haptic",
-          "type": "haptic",
-          "title": "Emergency Haptic",
-          "parameters": {
-            "intensity": "heavy",
-            "pattern": "urgent"
-          }
-        }
-      ],
-      "nextNodes": {
-        "default": "follow_up"
-      }
-    },
-    {
-      "id": "support_contact",
-      "type": "action",
-      "title": "Support Contact",
-      "content": "This is a moderate crisis. Would you like to contact a support person or crisis counselor?",
-      "actions": [
-        {
-          "id": "contact_support",
-          "type": "call",
-          "title": "Contact Support",
-          "parameters": {
-            "contact_type": "emergency_contacts"
-          }
+          "text": "Talk about what triggered this",
+          "nextNode": "talk_about_trigger"
         },
         {
-          "id": "support_haptic",
-          "type": "haptic",
-          "title": "Support Haptic",
-          "parameters": {
-            "intensity": "medium",
-            "pattern": "gentle"
-          }
+          "text": "Just rest for now",
+          "nextNode": "rest_completion"
         }
-      ],
-      "nextNodes": {
-        "default": "coping_strategies"
-      }
+      ]
     },
     {
-      "id": "coping_strategies",
-      "type": "resource",
-      "title": "Coping Strategies",
-      "content": "Here are some immediate coping strategies: 1) Deep breathing, 2) Grounding techniques, 3) Call a friend, 4) Distract yourself with an activity",
-      "actions": [
-        {
-          "id": "coping_haptic",
-          "type": "haptic",
-          "title": "Coping Haptic",
-          "parameters": {
-            "intensity": "light",
-            "pattern": "calm"
-          }
-        }
+      "id": "save_techniques",
+      "type": "conversation",
+      "messages": [
+        "Great idea! I'll save these techniques for you",
+        "Next time you feel panic coming on, you'll know exactly what to do",
+        "You've got this! 💪"
       ],
-      "nextNodes": {
-        "default": "follow_up"
-      }
+      "action": "save_techniques",
+      "nextNode": "rest_completion"
     },
     {
-      "id": "follow_up",
-      "type": "question",
-      "title": "Follow-up Check",
-      "content": "How are you feeling now? Do you need additional support?",
-      "actions": [
-        {
-          "id": "followup_haptic",
-          "type": "haptic",
-          "title": "Follow-up Haptic",
-          "parameters": {
-            "intensity": "light",
-            "pattern": "gentle"
-          }
-        }
+      "id": "talk_about_trigger",
+      "type": "conversation",
+      "messages": [
+        "Talking about it can really help",
+        "Would you like to journal about it or talk to someone?",
+        "Sometimes understanding the trigger helps prevent future attacks"
       ],
-      "conditions": [
+      "options": [
         {
-          "id": "need_more_help",
-          "type": "userResponse",
-          "parameters": {
-            "keywords": ["yes", "help", "support", "bad", "worse"]
-          }
+          "text": "I'll journal about it",
+          "nextNode": "journal_suggestion"
         },
         {
-          "id": "feeling_better",
-          "type": "userResponse",
-          "parameters": {
-            "keywords": ["better", "okay", "fine", "good", "no"]
-          }
+          "text": "I'll talk to someone later",
+          "nextNode": "rest_completion"
         }
-      ],
-      "nextNodes": {
-        "need_more_help": "additional_support",
-        "feeling_better": "flow_complete"
-      }
+      ]
     },
     {
-      "id": "additional_support",
-      "type": "resource",
-      "title": "Additional Support",
-      "content": "You can access additional support through: 1) Crisis hotlines, 2) Mental health professionals, 3) Support groups, 4) Emergency services if needed",
-      "actions": [
-        {
-          "id": "support_resources",
-          "type": "notification",
-          "title": "Support Resources",
-          "parameters": {
-            "message": "Additional support resources available",
-            "action": "show_resources"
-          }
-        }
+      "id": "journal_suggestion",
+      "type": "conversation",
+      "messages": [
+        "That's a really healthy choice",
+        "Writing it down can help you process what happened",
+        "Take care of yourself today"
       ],
-      "nextNodes": {
-        "default": "flow_complete"
-      }
+      "nextNode": "rest_completion"
     },
     {
-      "id": "flow_complete",
-      "type": "instruction",
-      "title": "Flow Complete",
-      "content": "Thank you for using the panic response flow. Remember, help is always available. Take care of yourself.",
-      "actions": [
-        {
-          "id": "completion_haptic",
-          "type": "haptic",
-          "title": "Completion Haptic",
-          "parameters": {
-            "intensity": "light",
-            "pattern": "success"
-          }
-        }
+      "id": "rest_completion",
+      "type": "conversation",
+      "messages": [
+        "You've been through a lot",
+        "Be gentle with yourself today",
+        "Remember: you're stronger than you think ❤️",
+        "I'm always here if you need me again"
       ],
-      "nextNodes": {}
+      "action": "completion_haptic",
+      "nextNode": null
     }
   ],
   "metadata": {
     "author": "Compass AI Team",
-    "tags": ["panic", "emergency", "crisis", "immediate"],
+    "tags": ["panic", "support", "conversational", "caring"],
     "difficulty": "easy",
-    "estimatedDuration": 300,
-    "emergencyLevel": "high",
-    "requiresLocation": true,
-    "requiresContacts": true
+    "estimatedDuration": 180,
+    "emergencyLevel": "medium",
+    "requiresLocation": false,
+    "requiresContacts": false
   },
   "createdAt": "2024-01-01T00:00:00Z",
-  "updatedAt": "2024-01-01T00:00:00Z"
+  "updatedAt": "2024-12-19T00:00:00Z"
 } 
