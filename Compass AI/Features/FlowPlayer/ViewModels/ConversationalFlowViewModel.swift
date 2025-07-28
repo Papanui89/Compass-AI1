@@ -216,6 +216,16 @@ class ConversationalFlowViewModel: ObservableObject {
             nextNode: nil
         )
         
+        let hardcodedMetadata = ConversationalFlowMetadata(
+            author: "Compass AI Team",
+            tags: ["panic", "support", "conversational", "caring"],
+            difficulty: "easy",
+            estimatedDuration: 180,
+            emergencyLevel: "medium",
+            requiresLocation: false,
+            requiresContacts: false
+        )
+        
         let hardcodedFlow = ConversationalFlow(
             id: "panic_flow",
             type: "panic",
@@ -224,7 +234,7 @@ class ConversationalFlowViewModel: ObservableObject {
             version: "2.0",
             startNode: "welcome",
             nodes: [hardcodedNode],
-            metadata: FlowMetadata()
+            metadata: hardcodedMetadata
         )
         
         currentFlow = hardcodedFlow

@@ -582,6 +582,35 @@ struct ConversationOption: Codable {
     }
 }
 
+/// Represents metadata for conversational flows
+struct ConversationalFlowMetadata: Codable {
+    let author: String?
+    let tags: [String]
+    let difficulty: String
+    let estimatedDuration: Int
+    let emergencyLevel: String
+    let requiresLocation: Bool
+    let requiresContacts: Bool
+    
+    init(
+        author: String? = nil,
+        tags: [String] = [],
+        difficulty: String = "easy",
+        estimatedDuration: Int = 180,
+        emergencyLevel: String = "medium",
+        requiresLocation: Bool = false,
+        requiresContacts: Bool = false
+    ) {
+        self.author = author
+        self.tags = tags
+        self.difficulty = difficulty
+        self.estimatedDuration = estimatedDuration
+        self.emergencyLevel = emergencyLevel
+        self.requiresLocation = requiresLocation
+        self.requiresContacts = requiresContacts
+    }
+}
+
 /// Represents a conversational flow
 struct ConversationalFlow: Codable {
     let id: String
@@ -591,7 +620,9 @@ struct ConversationalFlow: Codable {
     let version: String
     let startNode: String
     let nodes: [ConversationalNode]
-    let metadata: FlowMetadata
+    let metadata: ConversationalFlowMetadata
+    let createdAt: Date
+    let updatedAt: Date
     
     init(
         id: String,
@@ -601,7 +632,9 @@ struct ConversationalFlow: Codable {
         version: String,
         startNode: String,
         nodes: [ConversationalNode],
-        metadata: FlowMetadata
+        metadata: ConversationalFlowMetadata,
+        createdAt: Date = Date(),
+        updatedAt: Date = Date()
     ) {
         self.id = id
         self.type = type
@@ -611,11 +644,13 @@ struct ConversationalFlow: Codable {
         self.startNode = startNode
         self.nodes = nodes
         self.metadata = metadata
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
     }
 }
 
 /// Represents a conversation message type
-enum ConversationMessageType {
+enum ConversationMessageType: String, Codable {
     case text
     case action
     case breathing

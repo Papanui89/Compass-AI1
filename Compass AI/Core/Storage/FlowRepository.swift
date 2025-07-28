@@ -256,6 +256,12 @@ class FlowRepository {
             throw FlowRepositoryError.flowNotFound(flowType)
         }
         
+        // Print the JSON content for debugging
+        if let jsonString = String(data: data, encoding: .utf8) {
+            print("🔍 FlowRepository: JSON content (first 1000 chars):")
+            print(String(jsonString.prefix(1000)))
+        }
+        
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         
@@ -263,14 +269,32 @@ class FlowRepository {
             let flow = try decoder.decode(ConversationalFlow.self, from: data)
             print("✅ FlowRepository: Successfully decoded conversational flow: \(flow.title)")
             print("✅ FlowRepository: Flow has \(flow.nodes.count) nodes")
+            print("✅ FlowRepository: Start node: \(flow.startNode)")
+            
+            // Print details about each node for debugging
+            for node in flow.nodes {
+                print("🔍 FlowRepository: Node '\(node.id)' has \(node.messages.count) messages, \(node.options?.count ?? 0) options")
+            }
+            
             return flow
         } catch {
             print("❌ FlowRepository: Failed to decode conversational flow from \(foundPath ?? "unknown"): \(error)")
             print("❌ FlowRepository: Decoding error details: \(error)")
             
-            // Try to print the JSON content for debugging
-            if let jsonString = String(data: data, encoding: .utf8) {
-                print("🔍 FlowRepository: JSON content (first 500 chars): \(String(jsonString.prefix(500)))")
+            // Try to provide more specific error information
+            if let decodingError = error as? DecodingError {
+                switch decodingError {
+                case .keyNotFound(let key, let context):
+                    print("❌ FlowRepository: Missing key '\(key)' at path: \(context.codingPath)")
+                case .typeMismatch(let type, let context):
+                    print("❌ FlowRepository: Type mismatch for type '\(type)' at path: \(context.codingPath)")
+                case .valueNotFound(let type, let context):
+                    print("❌ FlowRepository: Value not found for type '\(type)' at path: \(context.codingPath)")
+                case .dataCorrupted(let context):
+                    print("❌ FlowRepository: Data corrupted at path: \(context.codingPath)")
+                @unknown default:
+                    print("❌ FlowRepository: Unknown decoding error")
+                }
             }
             
             throw FlowRepositoryError.importFailed(error)
