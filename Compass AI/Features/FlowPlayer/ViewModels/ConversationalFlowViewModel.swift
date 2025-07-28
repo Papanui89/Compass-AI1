@@ -19,38 +19,39 @@ class ConversationalFlowViewModel: ObservableObject {
         print("🔍 ConversationalFlowViewModel: Initialized")
     }
     
-    func loadFlow(for crisisType: CrisisType) async {
+    func loadFlow(for crisisType: CrisisType) {
         print("🔍 ConversationalFlowViewModel: Loading flow for crisis type: \(crisisType)")
+        isLoading = true
+        error = nil
         
-        await MainActor.run {
-            isLoading = true
-            error = nil
-            messages = []
-            currentOptions = []
-            isTyping = false
-        }
-        
-        do {
-            // Convert CrisisType to FlowType
-            let flowType = convertCrisisTypeToFlowType(crisisType)
-            print("🔍 ConversationalFlowViewModel: Converted to FlowType: \(flowType.rawValue)")
-            
-            // Load the conversational flow
-            let flow = try await flowRepository.loadConversationalFlow(flowType)
-            
-            await MainActor.run {
-                self.currentFlow = flow
-                print("✅ ConversationalFlowViewModel: Successfully loaded flow: \(flow.title)")
-                print("✅ ConversationalFlowViewModel: Flow has \(flow.nodes.count) nodes")
+        Task {
+            do {
+                // Convert CrisisType to FlowType
+                let flowType = convertCrisisTypeToFlowType(crisisType)
+                print("🔍 ConversationalFlowViewModel: Converted to FlowType: \(flowType.rawValue)")
                 
-                // Start the flow
-                self.startFlow()
-            }
-        } catch {
-            print("❌ ConversationalFlowViewModel: Failed to load flow: \(error)")
-            await MainActor.run {
-                self.error = "Failed to load flow: \(error.localizedDescription)"
-                self.isLoading = false
+                // Load the conversational flow
+                let flow = try await flowRepository.loadConversationalFlow(flowType)
+                
+                await MainActor.run {
+                    print("🔍 ConversationalFlowViewModel: Successfully loaded flow: \(flow.title)")
+                    print("🔍 ConversationalFlowViewModel: Flow has \(flow.nodes.count) nodes")
+                    print("🔍 ConversationalFlowViewModel: Start node: \(flow.startNode)")
+                    print("🔍 ConversationalFlowViewModel: Node IDs: \(flow.nodes.map { $0.id })")
+                    
+                    self.currentFlow = flow
+                    self.isLoading = false
+                    self.isFlowActive = true
+                    
+                    // Start the flow
+                    self.startFlow()
+                }
+            } catch {
+                await MainActor.run {
+                    print("❌ ConversationalFlowViewModel: Failed to load flow: \(error)")
+                    self.error = error.localizedDescription
+                    self.isLoading = false
+                }
             }
         }
     }
@@ -110,53 +111,46 @@ class ConversationalFlowViewModel: ObservableObject {
             print("🔍 ConversationalFlowViewModel: Options are: \(options.map { $0.text })")
         }
         
+        // Clear current options first
+        currentOptions = []
+        
         // Add messages one by one with typing animation
         for (index, message) in node.messages.enumerated() {
             let delay = Double(index) * 2.0 // Increased delay for more natural conversation
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                self.showTypingIndicator()
+            let workItem = DispatchWorkItem {
+                self.isTyping = true
                 
-                // Simulate typing time based on message length
-                let typingTime = min(Double(message.count) * 0.05, 2.0) // Max 2 seconds
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + typingTime) {
-                    self.hideTypingIndicator()
-                    self.addMessage(message, isFromUser: false)
+                let innerWorkItem = DispatchWorkItem {
+                    let chatMessage = ChatMessage(
+                        content: message,
+                        isUser: false,
+                        messageType: .text
+                    )
+                    
+                    self.messages.append(chatMessage)
+                    self.isTyping = false
+                    
+                    // If this is the last message, show options
+                    if index == node.messages.count - 1 {
+                        print("🔍 ConversationalFlowViewModel: Last message displayed, checking for options")
+                        if let options = node.options, !options.isEmpty {
+                            print("🔍 ConversationalFlowViewModel: Setting \(options.count) options")
+                            self.currentOptions = options
+                        } else if let nextNode = node.nextNode {
+                            print("🔍 ConversationalFlowViewModel: No options, moving to next node: \(nextNode)")
+                            // Auto-progress to next node if no options
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: DispatchWorkItem {
+                                self.moveToNode(nextNode)
+                            })
+                        }
+                    }
                 }
-            }
-        }
-        
-        // Show options after messages (if any) - FIXED TIMING
-        if let options = node.options {
-            let totalMessageTime = Double(node.messages.count) * 2.0 + 1.0
-            print("🔍 ConversationalFlowViewModel: Will show options in \(totalMessageTime) seconds")
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + totalMessageTime) {
-                print("✅ ConversationalFlowViewModel: Setting \(options.count) options")
-                self.currentOptions = options
-                print("✅ ConversationalFlowViewModel: currentOptions count is now: \(self.currentOptions.count)")
-            }
-        } else {
-            print("❌ ConversationalFlowViewModel: No options found in node")
-            
-            // If no options but has nextNode, automatically progress after messages
-            if let nextNodeId = node.nextNode {
-                let totalMessageTime = Double(node.messages.count) * 2.0 + 2.0
-                print("🔍 ConversationalFlowViewModel: Will auto-progress to \(nextNodeId) in \(totalMessageTime) seconds")
                 
-                DispatchQueue.main.asyncAfter(deadline: .now() + totalMessageTime) {
-                    self.progressToNextNode(nextNodeId)
-                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: innerWorkItem)
             }
-        }
-        
-        // Execute action if specified
-        if let action = node.action {
-            let totalMessageTime = Double(node.messages.count) * 2.0 + 1.0
-            DispatchQueue.main.asyncAfter(deadline: .now() + totalMessageTime) {
-                self.executeAction(action)
-            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
         }
     }
     
@@ -314,5 +308,35 @@ class ConversationalFlowViewModel: ObservableObject {
         
         print("✅ ConversationalFlowViewModel: Loaded hardcoded flow")
         displayNode(hardcodedNode)
+    }
+    
+    private func moveToNode(_ nodeId: String) {
+        print("🔍 ConversationalFlowViewModel: Moving to node: \(nodeId)")
+        
+        guard let flow = currentFlow else {
+            print("❌ ConversationalFlowViewModel: No current flow available")
+            return
+        }
+        
+        guard let node = flow.nodes.first(where: { $0.id == nodeId }) else {
+            print("❌ ConversationalFlowViewModel: Node not found: \(nodeId)")
+            return
+        }
+        
+        print("🔍 ConversationalFlowViewModel: Found node: \(node.id)")
+        print("🔍 ConversationalFlowViewModel: Node type: \(node.type)")
+        print("🔍 ConversationalFlowViewModel: Node has \(node.messages.count) messages")
+        print("🔍 ConversationalFlowViewModel: Node has \(node.options?.count ?? 0) options")
+        print("🔍 ConversationalFlowViewModel: Node has nextNode: \(node.nextNode ?? "none")")
+        
+        if let options = node.options {
+            print("🔍 ConversationalFlowViewModel: Options are:")
+            for option in options {
+                print("  - \(option.text) -> \(option.nextNode)")
+            }
+        }
+        
+        currentNode = node
+        displayNode(node)
     }
 } 
