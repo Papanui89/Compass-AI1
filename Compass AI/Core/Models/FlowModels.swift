@@ -8,6 +8,24 @@ struct FlowModels {
     // This file contains shared flow-related models used across the app
 }
 
+/// Represents a complete flow data structure
+struct FlowData: Codable {
+    let id: String
+    let name: String
+    let nodes: [String: FlowNode]
+}
+
+/// Represents a flow action that can be executed
+struct FlowActionData: Codable {
+    let type: String
+    let data: [String: String]
+    
+    init(type: String, data: [String: String] = [:]) {
+        self.type = type
+        self.data = data
+    }
+}
+
 /// Represents a complete flow configuration
 struct FlowConfiguration: Codable {
     let id: String
