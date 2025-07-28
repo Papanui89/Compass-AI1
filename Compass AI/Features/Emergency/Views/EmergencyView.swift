@@ -20,66 +20,88 @@ struct EmergencyView: View {
                           endPoint: .bottom)
                 .ignoresSafeArea()
             
-            VStack(spacing: 0) {
-                // AI Chat Bar at top - Hero Feature
-                AIChatBar(
-                    message: $aiMessage,
-                    isListening: $isListening,
-                    onSend: {
-                        if !aiMessage.isEmpty {
-                            HapticService.shared.impact(.medium)
-                            // Analyze text for crisis keywords
-                            if let crisisType = viewModel.analyzeTextForCrisis(aiMessage) {
-                                showingCrisisType = crisisType
-                            } else {
-                                showingAIChat = true
-                            }
-                        }
-                    },
-                    onMicTap: {
-                        HapticService.shared.impact(.light)
-                        isListening.toggle()
-                        // TODO: Implement speech recognition
-                    }
-                )
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
-                
-                // Crisis Cards Grid
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Recent section (if any)
-                        if !viewModel.recentCrises.isEmpty {
-                            RecentCrisesSection(crises: viewModel.recentCrises) { crisis in
+            // Main scrollable content
+            ScrollView {
+                VStack(spacing: 20) {
+                    // AI Chat Bar at top - Hero Feature
+                    AIChatBar(
+                        message: $aiMessage,
+                        isListening: $isListening,
+                        onSend: {
+                            if !aiMessage.isEmpty {
                                 HapticService.shared.impact(.medium)
-                                showingCrisisType = crisis
+                                // Analyze text for crisis keywords
+                                if let crisisType = viewModel.analyzeTextForCrisis(aiMessage) {
+                                    showingCrisisType = crisisType
+                                } else {
+                                    showingAIChat = true
+                                }
                             }
-                            .padding(.horizontal, 20)
+                        },
+                        onMicTap: {
+                            HapticService.shared.impact(.light)
+                            isListening.toggle()
+                            // TODO: Implement speech recognition
                         }
-                        
-                        // Main crisis grid
-                        CrisisCardsGrid { crisis in
+                    )
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+                    
+                    // Recent section (if any)
+                    if !viewModel.recentCrises.isEmpty {
+                        RecentCrisesSection(crises: viewModel.recentCrises) { crisis in
                             HapticService.shared.impact(.medium)
                             showingCrisisType = crisis
                         }
                         .padding(.horizontal, 20)
-                        
-                        // Smart suggestions based on time/location
-                        if let suggestion = viewModel.smartSuggestion {
-                            SmartSuggestionCard(suggestion: suggestion) {
-                                HapticService.shared.impact(.medium)
-                                showingCrisisType = suggestion.crisisType
-                            }
-                            .padding(.horizontal, 20)
-                        }
-                        
-                        // Extra bottom spacing to ensure content is scrollable above the bottom bar
-                        Spacer(minLength: 120)
                     }
-                    .padding(.top, 4)
+                    
+                    // Main crisis grid
+                    CrisisCardsGrid { crisis in
+                        HapticService.shared.impact(.medium)
+                        showingCrisisType = crisis
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    // Smart suggestions based on time/location
+                    if let suggestion = viewModel.smartSuggestion {
+                        SmartSuggestionCard(suggestion: suggestion) {
+                            HapticService.shared.impact(.medium)
+                            showingCrisisType = suggestion.crisisType
+                        }
+                        .padding(.horizontal, 20)
+                    }
+                    
+                    // Add extra content to ensure scrolling is needed
+                    VStack(spacing: 16) {
+                        Text("Additional Resources")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.secondary)
+                        
+                        ForEach(0..<5, id: \.self) { index in
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.gray.opacity(0.1))
+                                .frame(height: 60)
+                                .overlay(
+                                    Text("Resource \(index + 1)")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.primary)
+                                )
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    // Critical spacer for bottom bar clearance
+                    Spacer()
+                        .frame(height: 120) // Increased height for bottom bar + padding
                 }
-                
-                // Bottom Navigation Bar - Fixed at bottom
+                .padding(.top, 4)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure ScrollView takes full space
+            
+            // Floating bottom navigation - positioned at bottom
+            VStack {
+                Spacer()
                 BottomNavigationBar(
                     onRights: { 
                         HapticService.shared.impact(.light)
@@ -94,6 +116,9 @@ struct EmergencyView: View {
                         showingResources = true 
                     }
                 )
+                .background(.ultraThinMaterial) // Translucent background
+                .background(Color(.systemBackground).opacity(0.9))
+                .shadow(radius: 10, y: -5) // Elevation shadow
             }
         }
         .navigationBarHidden(true)
@@ -133,16 +158,22 @@ struct AIChatBar: View {
         VStack(spacing: 0) {
             // Hero AI Chat Section
             VStack(spacing: 28) {
-                // Header with icon and title
+                // Header with AI label and title
                 HStack(spacing: 18) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 32, weight: .medium))
-                        .foregroundColor(.white)
-                    
-                    Text("What's happening? Talk to me...")
-                        .font(.system(size: 26, weight: .semibold))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.leading)
+                    HStack {
+                        Text("AI")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.blue)
+                            .cornerRadius(8)
+                        
+                        Text("What's happening? Talk to me...")
+                            .font(.title3)
+                            .foregroundColor(.gray)
+                    }
                     
                     Spacer()
                 }
