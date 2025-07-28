@@ -1,99 +1,134 @@
 import SwiftUI
 
-/// Main emergency interface for crisis response - Simple 3-tap design
 struct EmergencyView: View {
     @StateObject private var viewModel = EmergencyViewModel()
-    @State private var showFlowPlayer = false
-    @State private var showRightsView = false
-    @State private var showEmergencyContacts = false
+    @State private var showingCrisisType: CrisisType?
+    @State private var showingPanicMode = false
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                // Background gradient
-                LinearGradient(
-                    colors: [Color.red.opacity(0.1), Color.orange.opacity(0.05)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+        ZStack {
+            // Background gradient
+            LinearGradient(colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.1)], 
+                          startPoint: .top, 
+                          endPoint: .bottom)
                 .ignoresSafeArea()
-                
-                VStack(spacing: 30) {
-                    // Panic Button at the top
-                    panicButton
-                    
-                    Spacer()
-                    
-                    // Main 3-tap interface
-                    VStack(spacing: 25) {
-                        // What to Do button
-                        mainActionButton(
-                            title: "What to Do",
-                            subtitle: "Step-by-step guidance",
-                            icon: "list.bullet.circle.fill",
-                            color: .purple
-                        ) {
-                            showFlowPlayer = true
-                        }
-                        
-                        // What to Say button
-                        mainActionButton(
-                            title: "What to Say",
-                            subtitle: "Know your rights",
-                            icon: "text.bubble.fill",
-                            color: .blue
-                        ) {
-                            showRightsView = true
-                        }
-                        
-                        // Who to Call button
-                        mainActionButton(
-                            title: "Who to Call",
-                            subtitle: "Emergency contacts",
-                            icon: "phone.circle.fill",
-                            color: .orange
-                        ) {
-                            showEmergencyContacts = true
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    
-                    Spacer()
+            
+            VStack(spacing: 30) {
+                // Panic Button at top
+                PanicButton {
+                    showingPanicMode = true
+                    HapticService.shared.impact(.heavy)
                 }
                 .padding(.top, 20)
-            }
-            .navigationTitle("Emergency")
-            .navigationBarTitleDisplayMode(.large)
-            .navigationBarHidden(true)
-            .alert("Emergency Alert", isPresented: $viewModel.showEmergencyAlert) {
-                Button("Call 911", role: .destructive) {
-                    viewModel.callEmergencyServices()
+                
+                Spacer()
+                
+                // Main 3-Tap Options
+                VStack(spacing: 25) {
+                    // What to Do
+                    EmergencyOptionButton(
+                        title: "What to Do",
+                        subtitle: "Step-by-step help",
+                        icon: "figure.run",
+                        color: .purple
+                    ) {
+                        showingCrisisType = .panicAttack // Will expand to selection
+                    }
+                    
+                    // What to Say
+                    EmergencyOptionButton(
+                        title: "What to Say", 
+                        subtitle: "Your rights & scripts",
+                        icon: "bubble.left.fill",
+                        color: .blue
+                    ) {
+                        // Navigate to rights
+                    }
+                    
+                    // Who to Call
+                    EmergencyOptionButton(
+                        title: "Who to Call",
+                        subtitle: "Emergency contacts",
+                        icon: "phone.fill",
+                        color: .green
+                    ) {
+                        // Show contacts
+                    }
                 }
-                Button("Cancel", role: .cancel) { }
-            } message: {
-                Text(viewModel.emergencyAlertMessage)
-            }
-            .sheet(isPresented: $showFlowPlayer) {
-                FlowPlayerView()
-            }
-            .sheet(isPresented: $showRightsView) {
-                RightsView()
-            }
-            .sheet(isPresented: $showEmergencyContacts) {
-                EmergencyContactsView()
+                .padding(.horizontal, 20)
+                
+                Spacer()
             }
         }
-        .onAppear {
-            viewModel.loadEmergencyData()
+        .navigationBarHidden(true)
+        .sheet(item: $showingCrisisType) { crisis in
+            FlowPlayerView(crisisType: crisis)
+        }
+        .fullScreenCover(isPresented: $showingPanicMode) {
+            PanicModeView()
         }
     }
+}
+
+// Emergency Option Button Component
+struct EmergencyOptionButton: View {
+    let title: String
+    let subtitle: String
+    let icon: String
+    let color: Color
+    let action: () -> Void
     
-    // MARK: - View Components
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 20) {
+                Image(systemName: icon)
+                    .font(.system(size: 40))
+                    .foregroundColor(.white)
+                    .frame(width: 80, height: 80)
+                    .background(color)
+                    .cornerRadius(20)
+                
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(title)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                    
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.title3)
+                    .foregroundColor(.secondary)
+            }
+            .padding()
+            .background(Color(.systemBackground))
+            .cornerRadius(20)
+            .shadow(color: color.opacity(0.3), radius: 10, x: 0, y: 5)
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+}
+
+// Scale animation on press
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+// Panic Button Component
+struct PanicButton: View {
+    let action: () -> Void
     
-    private var panicButton: some View {
-        Button(action: {
-            viewModel.activatePanicMode()
-        }) {
+    var body: some View {
+        Button(action: action) {
             VStack(spacing: 8) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 32, weight: .bold))
@@ -115,90 +150,6 @@ struct EmergencyView: View {
             .shadow(color: .red.opacity(0.3), radius: 10, x: 0, y: 5)
         }
         .buttonStyle(PlainButtonStyle())
-    }
-    
-    private func mainActionButton(
-        title: String,
-        subtitle: String,
-        icon: String,
-        color: Color,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            VStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.system(size: 40, weight: .medium))
-                    .foregroundColor(.white)
-                
-                VStack(spacing: 4) {
-                    Text(title)
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.white)
-                    
-                    Text(subtitle)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white.opacity(0.9))
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 140)
-            .background(
-                LinearGradient(
-                    colors: [color, color.opacity(0.8)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .cornerRadius(20)
-            .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-// MARK: - Placeholder Views (to be implemented)
-
-struct FlowPlayerView: View {
-    var body: some View {
-        NavigationView {
-            VStack {
-                Text("What to Do")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                
-                Text("Step-by-step guidance will be implemented here")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding()
-                
-                Spacer()
-            }
-            .navigationTitle("What to Do")
-            .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-}
-
-struct RightsView: View {
-    var body: some View {
-        NavigationView {
-            VStack {
-                Text("What to Say")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                
-                Text("Know your rights information will be implemented here")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding()
-                
-                Spacer()
-            }
-            .navigationTitle("What to Say")
-            .navigationBarTitleDisplayMode(.inline)
-        }
     }
 }
 

@@ -8,8 +8,13 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var appState = AppState.shared
+    
     var body: some View {
-        EmergencyView()
+        NavigationView {
+            EmergencyView()
+                .environmentObject(appState)
+        }
     }
 }
 

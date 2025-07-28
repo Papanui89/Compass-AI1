@@ -1,5 +1,6 @@
 import Foundation
 import CoreLocation
+import SwiftUI
 
 /// Represents a crisis situation and its associated data
 struct Crisis: Identifiable, Codable {
@@ -42,7 +43,7 @@ struct Crisis: Identifiable, Codable {
     }
 }
 
-enum CrisisType: String, Codable, CaseIterable {
+enum CrisisType: String, Codable, CaseIterable, Identifiable {
     case suicide = "suicide"
     case domesticViolence = "domestic_violence"
     case medicalEmergency = "medical_emergency"
@@ -52,7 +53,10 @@ enum CrisisType: String, Codable, CaseIterable {
     case violence = "violence"
     case abuse = "abuse"
     case harassment = "harassment"
+    case panicAttack = "panic_attack"
     case other = "other"
+    
+    var id: String { rawValue }
     
     var displayName: String {
         switch self {
@@ -74,6 +78,8 @@ enum CrisisType: String, Codable, CaseIterable {
             return "Abuse"
         case .harassment:
             return "Harassment"
+        case .panicAttack:
+            return "Panic Attack"
         case .other:
             return "Other Crisis"
         }
@@ -85,7 +91,7 @@ enum CrisisType: String, Codable, CaseIterable {
             return .immediate
         case .domesticViolence, .violence:
             return .high
-        case .mentalHealth, .substanceAbuse:
+        case .mentalHealth, .substanceAbuse, .panicAttack:
             return .medium
         case .abuse, .harassment:
             return .medium
@@ -116,8 +122,128 @@ enum CrisisType: String, Codable, CaseIterable {
             return "800-422-4453" // Childhelp National Child Abuse Hotline
         case .harassment:
             return "911"
+        case .panicAttack:
+            return "988"
         case .other:
             return "911"
+        }
+    }
+    
+    var name: String {
+        return displayName
+    }
+    
+    var description: String {
+        switch self {
+        case .suicide:
+            return "You're not alone. Let's get you help right now."
+        case .domesticViolence:
+            return "Your safety is the most important thing. We'll help you get to safety."
+        case .medicalEmergency:
+            return "Medical help is available. Let's get you the care you need."
+        case .mentalHealth:
+            return "Your mental health matters. Let's find the right support for you."
+        case .substanceAbuse:
+            return "Recovery is possible. Let's connect you with the right resources."
+        case .naturalDisaster:
+            return "Stay safe and follow emergency protocols. Help is available."
+        case .violence:
+            return "Your safety comes first. Let's get you to a safe place."
+        case .abuse:
+            return "You deserve to be safe. Let's get you the help you need."
+        case .harassment:
+            return "You have rights. Let's help you address this situation."
+        case .panicAttack:
+            return "This will pass. Let's help you through this moment."
+        case .other:
+            return "Help is available. Let's figure out what you need."
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .suicide:
+            return "heart.fill"
+        case .domesticViolence:
+            return "house.fill"
+        case .medicalEmergency:
+            return "cross.fill"
+        case .mentalHealth:
+            return "brain.head.profile"
+        case .substanceAbuse:
+            return "pills.fill"
+        case .naturalDisaster:
+            return "tornado"
+        case .violence:
+            return "exclamationmark.shield.fill"
+        case .abuse:
+            return "person.fill.questionmark"
+        case .harassment:
+            return "message.fill"
+        case .panicAttack:
+            return "lungs.fill"
+        case .other:
+            return "exclamationmark.triangle.fill"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .suicide, .medicalEmergency:
+            return .red
+        case .domesticViolence, .violence:
+            return .orange
+        case .mentalHealth, .panicAttack:
+            return .blue
+        case .substanceAbuse:
+            return .purple
+        case .abuse, .harassment:
+            return .yellow
+        case .naturalDisaster:
+            return .gray
+        case .other:
+            return .secondary
+        }
+    }
+    
+    var steps: [String] {
+        switch self {
+        case .panicAttack:
+            return [
+                "Find a comfortable position and sit down",
+                "Take slow, deep breaths - inhale for 4 counts, hold for 4, exhale for 4",
+                "Focus on your breathing and count each breath",
+                "Name 5 things you can see, 4 things you can touch, 3 things you can hear",
+                "Remind yourself that this will pass - panic attacks typically peak within 10 minutes",
+                "If symptoms persist, call 988 or your emergency contact"
+            ]
+        case .suicide:
+            return [
+                "You are not alone - help is available 24/7",
+                "Call 988 immediately - the National Suicide Prevention Lifeline",
+                "Text HOME to 741741 for Crisis Text Line",
+                "If you're in immediate danger, call 911",
+                "Reach out to a trusted friend, family member, or counselor",
+                "Remember: This feeling is temporary and you matter"
+            ]
+        case .domesticViolence:
+            return [
+                "Your safety is the most important thing",
+                "If you're in immediate danger, call 911",
+                "Call the National Domestic Violence Hotline: 800-799-7233",
+                "Find a safe place to go - a friend's house, family member, or shelter",
+                "Pack essential items if you need to leave quickly",
+                "Document any injuries or incidents"
+            ]
+        default:
+            return [
+                "Stay calm and assess the situation",
+                "Call the appropriate emergency number",
+                "Follow any specific instructions given",
+                "Get to a safe location if needed",
+                "Contact a trusted person for support",
+                "Remember that help is available"
+            ]
         }
     }
 }
