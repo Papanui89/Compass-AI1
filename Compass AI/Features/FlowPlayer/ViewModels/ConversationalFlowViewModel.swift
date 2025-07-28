@@ -102,6 +102,13 @@ class ConversationalFlowViewModel: ObservableObject {
     
     private func displayNode(_ node: ConversationalNode) {
         print("🔍 ConversationalFlowViewModel: Displaying node: \(node.id)")
+        print("🔍 ConversationalFlowViewModel: Node has \(node.messages.count) messages")
+        print("🔍 ConversationalFlowViewModel: Node has \(node.options?.count ?? 0) options")
+        print("🔍 ConversationalFlowViewModel: Node has nextNode: \(node.nextNode ?? "none")")
+        
+        if let options = node.options {
+            print("🔍 ConversationalFlowViewModel: Options are: \(options.map { $0.text })")
+        }
         
         // Add messages one by one with typing animation
         for (index, message) in node.messages.enumerated() {
@@ -120,12 +127,27 @@ class ConversationalFlowViewModel: ObservableObject {
             }
         }
         
-        // Show options after messages (if any)
+        // Show options after messages (if any) - FIXED TIMING
         if let options = node.options {
             let totalMessageTime = Double(node.messages.count) * 2.0 + 1.0
+            print("🔍 ConversationalFlowViewModel: Will show options in \(totalMessageTime) seconds")
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + totalMessageTime) {
+                print("✅ ConversationalFlowViewModel: Setting \(options.count) options")
                 self.currentOptions = options
-                print("✅ ConversationalFlowViewModel: Showing \(options.count) options")
+                print("✅ ConversationalFlowViewModel: currentOptions count is now: \(self.currentOptions.count)")
+            }
+        } else {
+            print("❌ ConversationalFlowViewModel: No options found in node")
+            
+            // If no options but has nextNode, automatically progress after messages
+            if let nextNodeId = node.nextNode {
+                let totalMessageTime = Double(node.messages.count) * 2.0 + 2.0
+                print("🔍 ConversationalFlowViewModel: Will auto-progress to \(nextNodeId) in \(totalMessageTime) seconds")
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + totalMessageTime) {
+                    self.progressToNextNode(nextNodeId)
+                }
             }
         }
         
@@ -136,6 +158,20 @@ class ConversationalFlowViewModel: ObservableObject {
                 self.executeAction(action)
             }
         }
+    }
+    
+    private func progressToNextNode(_ nextNodeId: String) {
+        print("🔍 ConversationalFlowViewModel: Progressing to next node: \(nextNodeId)")
+        
+        guard let flow = currentFlow,
+              let nextNode = flow.nodes.first(where: { $0.id == nextNodeId }) else {
+            print("❌ ConversationalFlowViewModel: Next node not found: \(nextNodeId)")
+            error = "Next node not found"
+            return
+        }
+        
+        currentNode = nextNode
+        displayNode(nextNode)
     }
     
     private func showTypingIndicator() {
