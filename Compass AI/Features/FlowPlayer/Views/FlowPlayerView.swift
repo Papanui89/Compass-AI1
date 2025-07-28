@@ -109,32 +109,11 @@ struct FlowPlayerView: View {
                         HapticService.shared.impact(.light)
                         viewModel.selectOption(option)
                     }
-                } else {
-                    let _ = print("🔍 FlowPlayerView: No options to show (currentOptions count: \(viewModel.currentOptions.count))")
-                    // Debug view to show current state
-                    VStack {
-                        Text("Debug: No options available")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("Options count: \(viewModel.currentOptions.count)")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                        Text("Current node: \(viewModel.currentNode?.id ?? "none")")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                        Text("Messages count: \(viewModel.messages.count)")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
-                    .padding(.horizontal)
                 }
             }
         }
         .onAppear {
-            startConversation()
+            viewModel.loadFlow(for: crisisType)
         }
         .alert("Pause Conversation", isPresented: $showingPauseMenu) {
             Button("Resume") { }
