@@ -310,5 +310,4 @@ struct LocationPickerView: View {
 // MARK: - Preview
 #Preview {
     RightsView()
-} 
-} 
+}
