@@ -10,6 +10,7 @@ class ConversationalFlowViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
     @Published var isFlowActive = false
+    @Published var isTyping = false
     
     private let flowRepository = FlowRepository.shared
     private let synthesizer = AVSpeechSynthesizer()
@@ -24,6 +25,9 @@ class ConversationalFlowViewModel: ObservableObject {
         await MainActor.run {
             isLoading = true
             error = nil
+            messages = []
+            currentOptions = []
+            isTyping = false
         }
         
         do {
@@ -37,6 +41,7 @@ class ConversationalFlowViewModel: ObservableObject {
             await MainActor.run {
                 self.currentFlow = flow
                 print("✅ ConversationalFlowViewModel: Successfully loaded flow: \(flow.title)")
+                print("✅ ConversationalFlowViewModel: Flow has \(flow.nodes.count) nodes")
                 
                 // Start the flow
                 self.startFlow()
@@ -91,23 +96,34 @@ class ConversationalFlowViewModel: ObservableObject {
         
         print("✅ ConversationalFlowViewModel: Flow started successfully")
         
-        // Start displaying messages
+        // Start displaying messages with typing animation
         displayNode(startNode)
     }
     
     private func displayNode(_ node: ConversationalNode) {
         print("🔍 ConversationalFlowViewModel: Displaying node: \(node.id)")
         
-        // Add messages one by one with delay
+        // Add messages one by one with typing animation
         for (index, message) in node.messages.enumerated() {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 1.5) {
-                self.addMessage(message, isFromUser: false)
+            let delay = Double(index) * 2.0 // Increased delay for more natural conversation
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                self.showTypingIndicator()
+                
+                // Simulate typing time based on message length
+                let typingTime = min(Double(message.count) * 0.05, 2.0) // Max 2 seconds
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + typingTime) {
+                    self.hideTypingIndicator()
+                    self.addMessage(message, isFromUser: false)
+                }
             }
         }
         
         // Show options after messages (if any)
         if let options = node.options {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(node.messages.count) * 1.5) {
+            let totalMessageTime = Double(node.messages.count) * 2.0 + 1.0
+            DispatchQueue.main.asyncAfter(deadline: .now() + totalMessageTime) {
                 self.currentOptions = options
                 print("✅ ConversationalFlowViewModel: Showing \(options.count) options")
             }
@@ -115,9 +131,22 @@ class ConversationalFlowViewModel: ObservableObject {
         
         // Execute action if specified
         if let action = node.action {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(node.messages.count) * 1.5) {
+            let totalMessageTime = Double(node.messages.count) * 2.0 + 1.0
+            DispatchQueue.main.asyncAfter(deadline: .now() + totalMessageTime) {
                 self.executeAction(action)
             }
+        }
+    }
+    
+    private func showTypingIndicator() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            isTyping = true
+        }
+    }
+    
+    private func hideTypingIndicator() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            isTyping = false
         }
     }
     
@@ -139,7 +168,11 @@ class ConversationalFlowViewModel: ObservableObject {
         }
         
         currentNode = nextNode
-        displayNode(nextNode)
+        
+        // Add a small delay before showing next messages
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.displayNode(nextNode)
+        }
     }
     
     private func executeAction(_ action: String) {
@@ -173,7 +206,7 @@ class ConversationalFlowViewModel: ObservableObject {
     private func addMessage(_ text: String, isFromUser: Bool, messageType: ConversationMessageType = .text) {
         let message = ChatMessage(content: text, isUser: isFromUser, messageType: messageType)
         
-        withAnimation(.easeInOut(duration: 0.3)) {
+        withAnimation(.easeInOut(duration: 0.5)) {
             messages.append(message)
         }
         
@@ -192,6 +225,7 @@ class ConversationalFlowViewModel: ObservableObject {
         isFlowActive = false
         isLoading = false
         error = nil
+        isTyping = false
     }
     
     // MARK: - Hardcoded fallback data for testing
