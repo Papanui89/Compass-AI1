@@ -10,6 +10,7 @@ struct EmergencyView: View {
     @State private var showingResources = false
     @State private var aiMessage = ""
     @State private var isListening = false
+    @State private var isLoadingFlow = false
     
     var body: some View {
         ZStack {
@@ -26,6 +27,7 @@ struct EmergencyView: View {
                     isListening: $isListening,
                     onSend: {
                         if !aiMessage.isEmpty {
+                            HapticService.shared.impact(.medium)
                             // Analyze text for crisis keywords
                             if let crisisType = viewModel.analyzeTextForCrisis(aiMessage) {
                                 showingCrisisType = crisisType
@@ -35,6 +37,7 @@ struct EmergencyView: View {
                         }
                     },
                     onMicTap: {
+                        HapticService.shared.impact(.light)
                         isListening.toggle()
                         // TODO: Implement speech recognition
                     }
@@ -48,6 +51,7 @@ struct EmergencyView: View {
                         // Recent section (if any)
                         if !viewModel.recentCrises.isEmpty {
                             RecentCrisesSection(crises: viewModel.recentCrises) { crisis in
+                                HapticService.shared.impact(.medium)
                                 showingCrisisType = crisis
                             }
                             .padding(.horizontal, 20)
@@ -55,6 +59,7 @@ struct EmergencyView: View {
                         
                         // Main crisis grid
                         CrisisCardsGrid { crisis in
+                            HapticService.shared.impact(.medium)
                             showingCrisisType = crisis
                         }
                         .padding(.horizontal, 20)
@@ -62,13 +67,14 @@ struct EmergencyView: View {
                         // Smart suggestions based on time/location
                         if let suggestion = viewModel.smartSuggestion {
                             SmartSuggestionCard(suggestion: suggestion) {
+                                HapticService.shared.impact(.medium)
                                 showingCrisisType = suggestion.crisisType
                             }
                             .padding(.horizontal, 20)
                         }
                         
                         // Bottom spacing for navigation bar
-                        Spacer(minLength: 120)
+                        Spacer(minLength: 140)
                     }
                     .padding(.top, 8)
                 }
@@ -78,9 +84,18 @@ struct EmergencyView: View {
             VStack {
                 Spacer()
                 BottomNavigationBar(
-                    onRights: { showingRights = true },
-                    onContacts: { showingContacts = true },
-                    onResources: { showingResources = true }
+                    onRights: { 
+                        HapticService.shared.impact(.light)
+                        showingRights = true 
+                    },
+                    onContacts: { 
+                        HapticService.shared.impact(.light)
+                        showingContacts = true 
+                    },
+                    onResources: { 
+                        HapticService.shared.impact(.light)
+                        showingResources = true 
+                    }
                 )
             }
         }
@@ -118,17 +133,18 @@ struct AIChatBar: View {
     let onMicTap: () -> Void
     
     @State private var isPulsing = false
+    @State private var isGlowing = false
     
     var body: some View {
         VStack(spacing: 0) {
             // Hero AI Chat Section
-            VStack(spacing: 16) {
+            VStack(spacing: 20) {
                 // Header with icon and title
-                HStack(spacing: 12) {
+                HStack(spacing: 16) {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 24, weight: .medium))
+                        .font(.system(size: 28, weight: .medium))
                         .foregroundColor(.white)
-                        .scaleEffect(isPulsing ? 1.1 : 1.0)
+                        .scaleEffect(isPulsing ? 1.15 : 1.0)
                         .animation(
                             Animation.easeInOut(duration: 2.0)
                                 .repeatForever(autoreverses: true),
@@ -136,7 +152,7 @@ struct AIChatBar: View {
                         )
                     
                     Text("What's happening? Talk to me...")
-                        .font(.system(size: 22, weight: .semibold))
+                        .font(.system(size: 24, weight: .semibold))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.leading)
                     
@@ -144,71 +160,73 @@ struct AIChatBar: View {
                 }
                 
                 // Chat input area
-                HStack(spacing: 16) {
+                HStack(spacing: 20) {
                     // Mic button
-                    Button(action: {
-                        HapticService.shared.impact(.medium)
-                        onMicTap()
-                    }) {
+                    Button(action: onMicTap) {
                         Image(systemName: isListening ? "stop.circle.fill" : "mic.circle.fill")
-                            .font(.system(size: 44, weight: .medium))
+                            .font(.system(size: 52, weight: .medium))
                             .foregroundColor(isListening ? .red : .white)
                             .background(
                                 Circle()
-                                    .fill(Color.white.opacity(0.2))
-                                    .frame(width: 60, height: 60)
+                                    .fill(Color.white.opacity(0.25))
+                                    .frame(width: 70, height: 70)
                             )
-                            .frame(width: 60, height: 60)
+                            .frame(width: 70, height: 70)
+                            .scaleEffect(isListening ? 1.1 : 1.0)
+                            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isListening)
                     }
                     .accessibilityLabel(isListening ? "Stop recording" : "Start voice recording")
                     
                     // Text input
                     HStack {
                         TextField("Type your message here...", text: $message)
-                            .font(.system(size: 18))
+                            .font(.system(size: 20))
                             .foregroundColor(.white)
                             .textFieldStyle(PlainTextFieldStyle())
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 16)
-                            .background(Color.white.opacity(0.15))
-                            .cornerRadius(20)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 20)
+                            .background(Color.white.opacity(0.2))
+                            .cornerRadius(24)
                         
                         if !message.isEmpty {
-                            Button(action: {
-                                HapticService.shared.impact(.light)
-                                onSend()
-                            }) {
+                            Button(action: onSend) {
                                 Image(systemName: "arrow.up.circle.fill")
-                                    .font(.system(size: 32, weight: .medium))
+                                    .font(.system(size: 36, weight: .medium))
                                     .foregroundColor(.white)
                             }
                             .accessibilityLabel("Send message")
-                            .padding(.trailing, 8)
+                            .padding(.trailing, 12)
                         }
                     }
                 }
             }
-            .padding(24)
+            .padding(28)
             .background(
                 LinearGradient(
                     colors: [
-                        Color.purple.opacity(0.9),
-                        Color.blue.opacity(0.8)
+                        Color.purple.opacity(0.95),
+                        Color.blue.opacity(0.85)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
             )
-            .cornerRadius(24)
+            .cornerRadius(28)
             .shadow(
-                color: Color.purple.opacity(0.3),
-                radius: 12,
+                color: Color.purple.opacity(0.4),
+                radius: 16,
                 x: 0,
-                y: 6
+                y: 8
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 24)
-                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 28)
+                    .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
+            )
+            .scaleEffect(isGlowing ? 1.02 : 1.0)
+            .animation(
+                Animation.easeInOut(duration: 3.0)
+                    .repeatForever(autoreverses: true),
+                value: isGlowing
             )
             
             // Divider with "OR" text
@@ -218,18 +236,19 @@ struct AIChatBar: View {
                     .frame(height: 1)
                 
                 Text("OR")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.secondary)
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 20)
                 
                 Rectangle()
                     .fill(Color.gray.opacity(0.3))
                     .frame(height: 1)
             }
-            .padding(.vertical, 20)
+            .padding(.vertical, 24)
         }
         .onAppear {
             isPulsing = true
+            isGlowing = true
         }
     }
 }
@@ -248,18 +267,18 @@ struct CrisisCardsGrid: View {
     ]
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Text("CHOOSE YOUR SITUATION")
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.secondary)
-                .padding(.top, 8)
+                .padding(.top, 12)
             
             LazyVGrid(
                 columns: [
-                    GridItem(.flexible(), spacing: 16),
-                    GridItem(.flexible(), spacing: 16)
+                    GridItem(.flexible(), spacing: 20),
+                    GridItem(.flexible(), spacing: 20)
                 ],
-                spacing: 16
+                spacing: 20
             ) {
                 ForEach(crisisData, id: \.0) { crisis in
                     CrisisCard(
@@ -267,7 +286,6 @@ struct CrisisCardsGrid: View {
                         title: crisis.2,
                         color: crisis.3
                     ) {
-                        HapticService.shared.impact(.medium)
                         onCrisisTap(crisis.0)
                     }
                 }
@@ -288,27 +306,27 @@ struct CrisisCard: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 16) {
+            VStack(spacing: 20) {
                 Text(emoji)
-                    .font(.system(size: 40))
-                    .scaleEffect(isAnimating ? 1.05 : 1.0)
+                    .font(.system(size: 48))
+                    .scaleEffect(isAnimating ? 1.08 : 1.0)
                     .animation(
-                        Animation.easeInOut(duration: 2.0)
+                        Animation.easeInOut(duration: 2.5)
                             .repeatForever(autoreverses: true),
                         value: isAnimating
                     )
                 
                 Text(title)
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
                     .lineLimit(3)
                     .minimumScaleFactor(0.8)
             }
-            .frame(minHeight: 120)
+            .frame(minHeight: 140)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
-            .padding(.horizontal, 16)
+            .padding(.vertical, 24)
+            .padding(.horizontal, 20)
             .background(
                 LinearGradient(
                     colors: [color, color.opacity(0.8)],
@@ -316,12 +334,12 @@ struct CrisisCard: View {
                     endPoint: .bottomTrailing
                 )
             )
-            .cornerRadius(20)
+            .cornerRadius(24)
             .shadow(
-                color: color.opacity(0.3),
-                radius: 8,
+                color: color.opacity(0.4),
+                radius: 12,
                 x: 0,
-                y: 4
+                y: 6
             )
             .scaleEffect(isPressed ? 0.95 : 1.0)
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
@@ -344,13 +362,13 @@ struct RecentCrisesSection: View {
     let onCrisisTap: (CrisisType) -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             Text("RECENT")
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.secondary)
             
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
+                HStack(spacing: 16) {
                     ForEach(crises, id: \.self) { crisis in
                         RecentCrisisCard(crisis: crisis) {
                             onCrisisTap(crisis)
@@ -388,20 +406,17 @@ struct RecentCrisisCard: View {
     }
     
     var body: some View {
-        Button(action: {
-            HapticService.shared.impact(.light)
-            action()
-        }) {
-            HStack(spacing: 8) {
+        Button(action: action) {
+            HStack(spacing: 12) {
                 Text(crisisInfo.0)
-                    .font(.system(size: 20))
+                    .font(.system(size: 24))
                 
                 Text(crisisInfo.1)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.white)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
             .background(
                 LinearGradient(
                     colors: [crisisInfo.2, crisisInfo.2.opacity(0.8)],
@@ -409,8 +424,8 @@ struct RecentCrisisCard: View {
                     endPoint: .trailing
                 )
             )
-            .cornerRadius(20)
-            .shadow(color: crisisInfo.2.opacity(0.3), radius: 4, x: 0, y: 2)
+            .cornerRadius(24)
+            .shadow(color: crisisInfo.2.opacity(0.4), radius: 6, x: 0, y: 3)
             .scaleEffect(isPressed ? 0.95 : 1.0)
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
         }
@@ -430,33 +445,30 @@ struct SmartSuggestionCard: View {
     @State private var isPressed = false
     
     var body: some View {
-        Button(action: {
-            HapticService.shared.impact(.medium)
-            action()
-        }) {
-            HStack(spacing: 16) {
+        Button(action: action) {
+            HStack(spacing: 20) {
                 Image(systemName: suggestion.icon)
-                    .font(.system(size: 28, weight: .medium))
+                    .font(.system(size: 32, weight: .medium))
                     .foregroundColor(.white)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 48, height: 48)
                 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text(suggestion.title)
-                        .font(.system(size: 18, weight: .bold))
+                        .font(.system(size: 20, weight: .bold))
                         .foregroundColor(.white)
                     
                     Text(suggestion.subtitle)
-                        .font(.system(size: 14))
+                        .font(.system(size: 16))
                         .foregroundColor(.white.opacity(0.9))
                 }
                 
                 Spacer()
                 
                 Image(systemName: "arrow.right.circle.fill")
-                    .font(.system(size: 24, weight: .medium))
+                    .font(.system(size: 28, weight: .medium))
                     .foregroundColor(.white.opacity(0.8))
             }
-            .padding(20)
+            .padding(24)
             .background(
                 LinearGradient(
                     colors: [.purple, .blue],
@@ -464,8 +476,8 @@ struct SmartSuggestionCard: View {
                     endPoint: .trailing
                 )
             )
-            .cornerRadius(20)
-            .shadow(color: .purple.opacity(0.3), radius: 8, x: 0, y: 4)
+            .cornerRadius(24)
+            .shadow(color: .purple.opacity(0.4), radius: 10, x: 0, y: 5)
             .scaleEffect(isPressed ? 0.98 : 1.0)
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
         }
@@ -506,13 +518,16 @@ struct BottomNavigationBar: View {
                     action: onResources
                 )
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-            .padding(.bottom, 32) // Extra padding for home indicator
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 40) // Extra padding for home indicator
             .background(
                 Color(.systemBackground)
-                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: -4)
+                    .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: -6)
             )
+        }
+        .safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: 0)
         }
     }
 }
@@ -526,22 +541,19 @@ struct BottomBarButton: View {
     @State private var isPressed = false
     
     var body: some View {
-        Button(action: {
-            HapticService.shared.impact(.light)
-            action()
-        }) {
-            VStack(spacing: 6) {
+        Button(action: action) {
+            VStack(spacing: 8) {
                 Image(systemName: icon)
-                    .font(.system(size: 24, weight: .medium))
+                    .font(.system(size: 28, weight: .medium))
                     .foregroundColor(.blue)
                     .scaleEffect(isPressed ? 0.9 : 1.0)
                 
                 Text(title)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.primary)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
+            .padding(.vertical, 16)
             .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())

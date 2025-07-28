@@ -23,6 +23,8 @@ class ConversationalFlowViewModel: ObservableObject {
         print("🔍 ConversationalFlowViewModel: Loading flow for crisis type: \(crisisType)")
         isLoading = true
         error = nil
+        messages = []
+        currentOptions = []
         
         Task {
             do {
@@ -51,6 +53,10 @@ class ConversationalFlowViewModel: ObservableObject {
                     print("❌ ConversationalFlowViewModel: Failed to load flow: \(error)")
                     self.error = error.localizedDescription
                     self.isLoading = false
+                    
+                    // Load hardcoded fallback
+                    print("🔄 ConversationalFlowViewModel: Loading hardcoded fallback")
+                    self.loadHardcodedFlow()
                 }
             }
         }
@@ -136,7 +142,9 @@ class ConversationalFlowViewModel: ObservableObject {
                         print("🔍 ConversationalFlowViewModel: Last message displayed, checking for options")
                         if let options = node.options, !options.isEmpty {
                             print("🔍 ConversationalFlowViewModel: Setting \(options.count) options")
-                            self.currentOptions = options
+                            DispatchQueue.main.async {
+                                self.currentOptions = options
+                            }
                         } else if let nextNode = node.nextNode {
                             print("🔍 ConversationalFlowViewModel: No options, moving to next node: \(nextNode)")
                             // Auto-progress to next node if no options

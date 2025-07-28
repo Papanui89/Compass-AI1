@@ -27,7 +27,10 @@ struct FlowPlayerView: View {
             VStack(spacing: 0) {
                 // Top navigation bar
                 HStack {
-                    Button(action: { showingPauseMenu = true }) {
+                    Button(action: { 
+                        HapticService.shared.impact(.light)
+                        showingPauseMenu = true 
+                    }) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.title2)
                             .foregroundColor(.secondary)
@@ -46,13 +49,19 @@ struct FlowPlayerView: View {
                     }
                     
                     if isVoiceEnabled {
-                        Button(action: { isVoiceEnabled.toggle() }) {
+                        Button(action: { 
+                            HapticService.shared.impact(.light)
+                            isVoiceEnabled.toggle() 
+                        }) {
                             Image(systemName: "speaker.wave.2.fill")
                                 .font(.title2)
                                 .foregroundColor(.blue)
                         }
                     } else {
-                        Button(action: { isVoiceEnabled.toggle() }) {
+                        Button(action: { 
+                            HapticService.shared.impact(.light)
+                            isVoiceEnabled.toggle() 
+                        }) {
                             Image(systemName: "speaker.slash.fill")
                                 .font(.title2)
                                 .foregroundColor(.secondary)
@@ -60,12 +69,12 @@ struct FlowPlayerView: View {
                     }
                 }
                 .padding()
-                .background(Color(.systemBackground).opacity(0.8))
+                .background(Color(.systemBackground).opacity(0.9))
                 
                 // Chat messages area
                 ScrollViewReader { proxy in
                     ScrollView {
-                        LazyVStack(spacing: 12) {
+                        LazyVStack(spacing: 16) {
                             // Welcome message
                             if viewModel.messages.isEmpty && !viewModel.isLoading {
                                 WelcomeMessageView(crisisType: crisisType)
@@ -83,8 +92,8 @@ struct FlowPlayerView: View {
                                     .id("typing")
                             }
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.top, 8)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 12)
                     }
                     .onChange(of: viewModel.messages.count) { _ in
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -109,15 +118,18 @@ struct FlowPlayerView: View {
                         HapticService.shared.impact(.light)
                         viewModel.selectOption(option)
                     }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
         }
         .onAppear {
+            print("🔍 FlowPlayerView: Appeared for crisis type: \(crisisType)")
             viewModel.loadFlow(for: crisisType)
         }
         .alert("Pause Conversation", isPresented: $showingPauseMenu) {
             Button("Resume") { }
             Button("Exit", role: .destructive) {
+                HapticService.shared.impact(.medium)
                 dismiss()
             }
         } message: {
@@ -125,14 +137,17 @@ struct FlowPlayerView: View {
         }
         .alert("Error", isPresented: .constant(viewModel.error != nil)) {
             Button("Try Again") {
+                HapticService.shared.impact(.medium)
                 viewModel.error = nil
                 startConversation()
             }
             Button("Use Fallback") {
+                HapticService.shared.impact(.medium)
                 viewModel.error = nil
                 viewModel.loadHardcodedFlow()
             }
             Button("Exit", role: .destructive) {
+                HapticService.shared.impact(.medium)
                 dismiss()
             }
         } message: {
@@ -157,11 +172,11 @@ struct OptionsView: View {
     let onOptionSelected: (ConversationOption) -> Void
     
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 16) {
             Text("What would you like to do?")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .padding(.top, 8)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.primary)
+                .padding(.top, 12)
             
             ForEach(options, id: \.text) { option in
                 OptionButton(option: option) {
@@ -169,10 +184,12 @@ struct OptionsView: View {
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
-        .background(Color(.systemBackground).opacity(0.95))
-        .transition(.move(edge: .bottom).combined(with: .opacity))
+        .padding(.horizontal, 20)
+        .padding(.bottom, 20)
+        .background(
+            Color(.systemBackground)
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: -4)
+        )
     }
 }
 
@@ -181,33 +198,42 @@ struct OptionButton: View {
     let option: ConversationOption
     let action: () -> Void
     
+    @State private var isPressed = false
+    
     var body: some View {
         Button(action: action) {
             HStack {
                 Text(option.text)
-                    .font(.body)
+                    .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.leading)
                 
                 Spacer()
                 
                 Image(systemName: "arrow.right")
-                    .font(.caption)
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.blue)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 20)
             .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 20)
                     .fill(Color(.systemGray6))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(Color.blue.opacity(0.3), lineWidth: 1.5)
                     )
             )
+            .scaleEffect(isPressed ? 0.98 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel("Option: \(option.text)")
+        .accessibilityHint("Double tap to select this option")
+        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
+            isPressed = pressing
+        }, perform: {})
     }
 }
 
@@ -217,7 +243,7 @@ struct WelcomeMessageView: View {
     
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Image(systemName: "heart.fill")
                         .foregroundColor(.red)
@@ -230,14 +256,14 @@ struct WelcomeMessageView: View {
                 }
                 
                 Text(welcomeMessage)
-                    .font(.body)
+                    .font(.system(size: 18))
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.leading)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
             .background(
-                RoundedRectangle(cornerRadius: 18)
+                RoundedRectangle(cornerRadius: 20)
                     .fill(Color(.systemGray6))
             )
             .frame(maxWidth: UIScreen.main.bounds.width * 0.85, alignment: .leading)
@@ -280,73 +306,73 @@ struct ChatBubbleView: View {
                 switch message.messageType {
                 case .text:
                     Text(message.content)
-                        .font(.body)
+                        .font(.system(size: 18))
                         .foregroundColor(message.isUser ? .white : .primary)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
                         .background(
-                            RoundedRectangle(cornerRadius: 18)
+                            RoundedRectangle(cornerRadius: 20)
                                 .fill(message.isUser ? Color.blue : Color(.systemGray6))
                         )
                         .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: message.isUser ? .trailing : .leading)
                         
                 case .breathing:
-                    VStack(spacing: 8) {
+                    VStack(spacing: 12) {
                         Text(message.content)
-                            .font(.body)
+                            .font(.system(size: 18))
                             .foregroundColor(.primary)
                         
                         BreathingAnimationView()
-                            .frame(height: 100)
+                            .frame(height: 120)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
                     .background(
-                        RoundedRectangle(cornerRadius: 18)
+                        RoundedRectangle(cornerRadius: 20)
                             .fill(Color(.systemGray6))
                     )
                     .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: .leading)
                     
                 case .grounding:
-                    VStack(spacing: 8) {
+                    VStack(spacing: 12) {
                         Text(message.content)
-                            .font(.body)
+                            .font(.system(size: 18))
                             .foregroundColor(.primary)
                         
                         GroundingChecklistView()
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
                     .background(
-                        RoundedRectangle(cornerRadius: 18)
+                        RoundedRectangle(cornerRadius: 20)
                             .fill(Color(.systemGray6))
                     )
                     .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: .leading)
                     
                 case .contacts:
-                    VStack(spacing: 8) {
+                    VStack(spacing: 12) {
                         Text(message.content)
-                            .font(.body)
+                            .font(.system(size: 18))
                             .foregroundColor(.primary)
                         
                         EmergencyContactsQuickView()
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
                     .background(
-                        RoundedRectangle(cornerRadius: 18)
+                        RoundedRectangle(cornerRadius: 20)
                             .fill(Color(.systemGray6))
                     )
                     .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: .leading)
                     
                 case .action:
                     Text(message.content)
-                        .font(.body)
+                        .font(.system(size: 18))
                         .foregroundColor(.primary)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
                         .background(
-                            RoundedRectangle(cornerRadius: 18)
+                            RoundedRectangle(cornerRadius: 20)
                                 .fill(Color(.systemGray6))
                         )
                         .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: .leading)
@@ -369,11 +395,11 @@ struct TypingIndicatorView: View {
     
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
                     Circle()
                         .fill(Color.gray)
-                        .frame(width: 8, height: 8)
+                        .frame(width: 10, height: 10)
                         .offset(y: dotOffset1)
                         .animation(
                             Animation.easeInOut(duration: 0.6)
@@ -384,7 +410,7 @@ struct TypingIndicatorView: View {
                     
                     Circle()
                         .fill(Color.gray)
-                        .frame(width: 8, height: 8)
+                        .frame(width: 10, height: 10)
                         .offset(y: dotOffset2)
                         .animation(
                             Animation.easeInOut(duration: 0.6)
@@ -395,7 +421,7 @@ struct TypingIndicatorView: View {
                     
                     Circle()
                         .fill(Color.gray)
-                        .frame(width: 8, height: 8)
+                        .frame(width: 10, height: 10)
                         .offset(y: dotOffset3)
                         .animation(
                             Animation.easeInOut(duration: 0.6)
@@ -406,13 +432,13 @@ struct TypingIndicatorView: View {
                 }
                 
                 Text("Compass AI is typing...")
-                    .font(.caption)
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.secondary)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
             .background(
-                RoundedRectangle(cornerRadius: 18)
+                RoundedRectangle(cornerRadius: 20)
                     .fill(Color(.systemGray6))
             )
             .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: .leading)
@@ -420,9 +446,9 @@ struct TypingIndicatorView: View {
             Spacer()
         }
         .onAppear {
-            dotOffset1 = -5
-            dotOffset2 = -5
-            dotOffset3 = -5
+            dotOffset1 = -6
+            dotOffset2 = -6
+            dotOffset3 = -6
         }
     }
 }
