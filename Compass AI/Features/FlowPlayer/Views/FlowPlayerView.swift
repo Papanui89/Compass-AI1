@@ -77,7 +77,9 @@ struct FlowPlayerView: View {
                     }
                     .onChange(of: messages.count) { _ in
                         withAnimation(.easeInOut(duration: 0.3)) {
-                            proxy.scrollTo(messages.last?.id ?? "typing", anchor: .bottom)
+                            if let lastMessage = messages.last {
+                                proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                            }
                         }
                     }
                 }
@@ -234,7 +236,7 @@ struct FlowPlayerView: View {
             }
             
         case "completion_haptic":
-            HapticService.shared.impact(.success)
+            HapticService.shared.flowCompleted()
             
         default:
             break
@@ -265,39 +267,39 @@ struct ChatBubbleView: View {
     
     var body: some View {
         HStack {
-            if message.isFromUser {
+            if message.isUser {
                 Spacer()
             }
             
-            VStack(alignment: message.isFromUser ? .trailing : .leading, spacing: 4) {
+            VStack(alignment: message.isUser ? .trailing : .leading, spacing: 4) {
                 switch message.messageType {
                 case .text:
-                    Text(message.text)
+                    Text(message.content)
                         .font(.body)
-                        .foregroundColor(message.isFromUser ? .white : .primary)
+                        .foregroundColor(message.isUser ? .white : .primary)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
                         .background(
                             RoundedRectangle(cornerRadius: 18)
-                                .fill(message.isFromUser ? Color.blue : Color(.systemGray6))
+                                .fill(message.isUser ? Color.blue : Color(.systemGray6))
                         )
-                        .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: message.isFromUser ? .trailing : .leading)
+                        .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: message.isUser ? .trailing : .leading)
                         
                 case .breathing:
-                    BreathingMessageView(text: message.text)
+                    BreathingMessageView(text: message.content)
                     
                 case .grounding:
-                    GroundingMessageView(text: message.text)
+                    GroundingMessageView(text: message.content)
                     
                 case .contacts:
-                    ContactsMessageView(text: message.text)
+                    ContactsMessageView(text: message.content)
                     
                 case .action:
-                    ActionMessageView(text: message.text)
+                    ActionMessageView(text: message.content)
                 }
             }
             
-            if !message.isFromUser {
+            if !message.isUser {
                 Spacer()
             }
         }
@@ -465,5 +467,5 @@ class ConversationalFlowViewModel: ObservableObject {
 
 // MARK: - Preview
 #Preview {
-    FlowPlayerView(crisisType: .panic)
+    FlowPlayerView(crisisType: .panicAttack)
 } 
