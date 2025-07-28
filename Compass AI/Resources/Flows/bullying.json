@@ -1,0 +1,233 @@
+{
+  "id": "bullying_flow",
+  "type": "bullying",
+  "title": "Bullying Support - Real Talk",
+  "description": "Strategic advice from someone who gets it",
+  "version": "2.0",
+  "startNode": "start",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "conversation",
+      "messages": [
+        "Damn, dealing with bullies is exhausting",
+        "Let's figure out how to handle this without making it worse"
+      ],
+      "nextNode": "situation_check"
+    },
+    {
+      "id": "situation_check",
+      "type": "conversation",
+      "messages": [
+        "What's the situation?"
+      ],
+      "options": [
+        {"text": "They're talking shit about me", "next": "social_warfare"},
+        {"text": "Getting physical/threatening", "next": "safety_first"},
+        {"text": "Spreading stuff online", "next": "digital_warfare"},
+        {"text": "Leaving me out of everything", "next": "isolation_tactics"}
+      ]
+    },
+    {
+      "id": "social_warfare",
+      "type": "conversation",
+      "messages": [
+        "Social attacks hit different. They want you to react",
+        "Here's the thing - they're showing everyone how insecure THEY are",
+        "You responding gives them power. Your silence makes them irrelevant"
+      ],
+      "nextNode": "power_moves"
+    },
+    {
+      "id": "power_moves",
+      "type": "conversation",
+      "messages": [
+        "Some power moves that actually work:",
+        "1. The 'unbothered' - literally act like they don't exist",
+        "2. The 'redirect' - 'weird flex but ok' and walk away",
+        "3. The 'confidence bomb' - 'thanks for thinking about me so much' + smile",
+        "Which feels more like you?"
+      ],
+      "options": [
+        {"text": "I can ignore them", "next": "master_ignorance"},
+        {"text": "I want comebacks", "next": "verbal_aikido"},
+        {"text": "I need them to stop", "next": "strategic_action"}
+      ]
+    },
+    {
+      "id": "master_ignorance",
+      "type": "conversation",
+      "messages": [
+        "The gray rock method - become too boring to bully",
+        "They want a reaction. Give them NOTHING",
+        "Practice your 'unbothered' face in the mirror",
+        "When they talk, literally look through them like they're air"
+      ],
+      "nextNode": "psychology_lesson"
+    },
+    {
+      "id": "verbal_aikido",
+      "type": "conversation",
+      "messages": [
+        "Real comebacks that work:",
+        "'I'm confused, was that supposed to hurt?'",
+        "'You seem really invested in my life'",
+        "'K.' (then walk away)",
+        "laugh 'That's wild' continue with your day",
+        "The key: sound genuinely confused, not defensive"
+      ],
+      "nextNode": "psychology_lesson"
+    },
+    {
+      "id": "strategic_action",
+      "type": "conversation",
+      "messages": [
+        "If you want backup, here's how to get adults to actually DO something:",
+        "Document everything - dates, times, what they said",
+        "Tell them you're building a case for legal action",
+        "Mention you're considering transferring schools",
+        "Adults move faster when they think you might sue"
+      ],
+      "nextNode": "psychology_lesson"
+    },
+    {
+      "id": "psychology_lesson",
+      "type": "conversation",
+      "messages": [
+        "Why they're actually doing this (spoiler: they're miserable):",
+        "They're projecting their own shit onto you",
+        "That's about them, not you",
+        "Boring people don't get bullied - you're interesting",
+        "They wouldn't target you if you weren't a threat"
+      ],
+      "nextNode": "confidence_build"
+    },
+    {
+      "id": "confidence_build",
+      "type": "conversation",
+      "messages": [
+        "This is actually preparing you to handle adult assholes",
+        "You're learning psychology in real-time",
+        "You already are superior - you're not the one being pathetic",
+        "Rate your confidence right now 1-10"
+      ],
+      "options": [
+        {"text": "1-3: Still feeling weak", "next": "power_boost"},
+        {"text": "4-7: Getting there", "next": "next_level"},
+        {"text": "8-10: Feeling strong", "next": "nuclear_options"}
+      ]
+    },
+    {
+      "id": "power_boost",
+      "type": "conversation",
+      "messages": [
+        "What would make YOU feel powerful in this situation?",
+        "What's your move if you knew you couldn't lose?",
+        "Think about it - you're the one with options",
+        "They're stuck being pathetic. You're growing stronger"
+      ],
+      "nextNode": "action_plan"
+    },
+    {
+      "id": "next_level",
+      "type": "conversation",
+      "messages": [
+        "You're getting it. Now let's level up:",
+        "How to spot their insecurities and use them",
+        "Social dynamics - how to flip the script",
+        "What outcome do you actually want here?"
+      ],
+      "nextNode": "action_plan"
+    },
+    {
+      "id": "nuclear_options",
+      "type": "conversation",
+      "messages": [
+        "If shit gets real, here are the power moves:",
+        "Document everything for legal action",
+        "Transfer schools FROM A POSITION OF POWER",
+        "Use their behavior against them publicly",
+        "Turn their friends (strategic social moves)"
+      ],
+      "nextNode": "action_plan"
+    },
+    {
+      "id": "safety_first",
+      "type": "conversation",
+      "messages": [
+        "Physical threats are different. Safety first:",
+        "Avoid them completely - change your route",
+        "Stay in public places with witnesses",
+        "Record everything on your phone",
+        "Tell multiple adults - make it their problem"
+      ],
+      "nextNode": "legal_prep"
+    },
+    {
+      "id": "digital_warfare",
+      "type": "conversation",
+      "messages": [
+        "Digital warfare tactics:",
+        "Screenshot everything - we're building a case",
+        "Block party - make them irrelevant",
+        "The reverse uno - report their accounts first",
+        "Going ghost - strategic social media breaks"
+      ],
+      "nextNode": "psychology_lesson"
+    },
+    {
+      "id": "isolation_tactics",
+      "type": "conversation",
+      "messages": [
+        "Social isolation is psychological warfare:",
+        "They want you to feel alone. Don't let them win",
+        "Find your people outside school - online communities, clubs",
+        "Quality over quantity - one real friend > 100 fake ones",
+        "This is temporary. High school ends. Real life begins"
+      ],
+      "nextNode": "psychology_lesson"
+    },
+    {
+      "id": "legal_prep",
+      "type": "conversation",
+      "messages": [
+        "Building your case:",
+        "Keep a detailed log - dates, times, witnesses",
+        "Save all texts, social media posts, videos",
+        "Tell teachers, counselors, parents - in writing",
+        "If they ignore it, that's on them, not you"
+      ],
+      "nextNode": "action_plan"
+    },
+    {
+      "id": "action_plan",
+      "type": "conversation",
+      "messages": [
+        "Your action plan:",
+        "1. Pick your battles - not everything needs a response",
+        "2. Build your support system - real friends, family",
+        "3. Focus on your goals - they're temporary, your future isn't",
+        "4. Remember: you're the one with options",
+        "What's your first move going to be?"
+      ],
+      "options": [
+        {"text": "I'm going to ignore them completely", "next": "final_boost"},
+        {"text": "I'm documenting everything", "next": "final_boost"},
+        {"text": "I'm finding my real friends", "next": "final_boost"},
+        {"text": "I'm focusing on my goals", "next": "final_boost"}
+      ]
+    },
+    {
+      "id": "final_boost",
+      "type": "conversation",
+      "messages": [
+        "Perfect. You've got this.",
+        "Remember: they're the ones being pathetic",
+        "You're the one growing stronger",
+        "This is temporary. Your power is permanent.",
+        "Go handle your business 💪"
+      ],
+      "nextNode": "end"
+    }
+  ]
+} 

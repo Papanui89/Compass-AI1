@@ -11,8 +11,11 @@ class FlowRepository {
     
     /// Loads a crisis flow by type
     func loadFlow(_ flowType: FlowType) async throws -> Flow {
+        print("🔍 FlowRepository: Attempting to load flow for type: \(flowType.rawValue)")
+        
         // Try to load from cache first
         if let cachedFlow = try await offlineCache.getFlow(flowType) {
+            print("✅ FlowRepository: Found cached flow for \(flowType.rawValue)")
             return cachedFlow
         }
         
@@ -21,6 +24,17 @@ class FlowRepository {
         
         // Cache the flow for offline use
         try await offlineCache.storeFlow(flow, for: flowType)
+        
+        return flow
+    }
+    
+    /// Loads a conversational flow by type
+    func loadConversationalFlow(_ flowType: FlowType) async throws -> ConversationalFlow {
+        print("🔍 FlowRepository: Attempting to load conversational flow for type: \(flowType.rawValue)")
+        
+        // Load from bundled resources
+        let flow = try await loadBundledConversationalFlow(flowType)
+        print("✅ FlowRepository: Successfully loaded conversational flow: \(flow.title)")
         
         return flow
     }
@@ -34,7 +48,7 @@ class FlowRepository {
                 let flow = try await loadFlow(flowType)
                 flows.append(flow)
             } catch {
-                print("Failed to load flow \(flowType): \(error)")
+                print("❌ FlowRepository: Failed to load flow \(flowType): \(error)")
             }
         }
         
@@ -159,6 +173,8 @@ class FlowRepository {
     // MARK: - Private Methods
     
     private func loadBundledFlow(_ flowType: FlowType) async throws -> Flow {
+        print("🔍 FlowRepository: Loading bundled flow for \(flowType.rawValue)")
+        
         // Try different possible paths for the JSON file
         let possiblePaths = [
             "Resources/Flows/\(flowType.rawValue)",
@@ -170,18 +186,24 @@ class FlowRepository {
         var foundPath: String?
         
         for path in possiblePaths {
+            print("🔍 FlowRepository: Trying path: \(path)")
             if let url = Bundle.main.url(forResource: path, withExtension: "json") {
+                print("✅ FlowRepository: Found file at: \(url)")
                 do {
                     flowData = try Data(contentsOf: url)
                     foundPath = path
+                    print("✅ FlowRepository: Successfully read data from \(path)")
                     break
                 } catch {
-                    print("Failed to load flow from \(path): \(error)")
+                    print("❌ FlowRepository: Failed to load flow from \(path): \(error)")
                 }
+            } else {
+                print("❌ FlowRepository: No file found at path: \(path)")
             }
         }
         
         guard let data = flowData else {
+            print("❌ FlowRepository: No flow data found for \(flowType.rawValue)")
             throw FlowRepositoryError.flowNotFound(flowType)
         }
         
@@ -189,9 +211,68 @@ class FlowRepository {
         decoder.dateDecodingStrategy = .iso8601
         
         do {
-            return try decoder.decode(Flow.self, from: data)
+            let flow = try decoder.decode(Flow.self, from: data)
+            print("✅ FlowRepository: Successfully decoded flow: \(flow.title)")
+            return flow
         } catch {
-            print("Failed to decode flow from \(foundPath ?? "unknown"): \(error)")
+            print("❌ FlowRepository: Failed to decode flow from \(foundPath ?? "unknown"): \(error)")
+            print("❌ FlowRepository: Decoding error details: \(error)")
+            throw FlowRepositoryError.importFailed(error)
+        }
+    }
+    
+    private func loadBundledConversationalFlow(_ flowType: FlowType) async throws -> ConversationalFlow {
+        print("🔍 FlowRepository: Loading bundled conversational flow for \(flowType.rawValue)")
+        
+        // Try different possible paths for the JSON file
+        let possiblePaths = [
+            "Resources/Flows/\(flowType.rawValue)",
+            "Flows/\(flowType.rawValue)",
+            flowType.rawValue
+        ]
+        
+        var flowData: Data?
+        var foundPath: String?
+        
+        for path in possiblePaths {
+            print("🔍 FlowRepository: Trying path: \(path)")
+            if let url = Bundle.main.url(forResource: path, withExtension: "json") {
+                print("✅ FlowRepository: Found file at: \(url)")
+                do {
+                    flowData = try Data(contentsOf: url)
+                    foundPath = path
+                    print("✅ FlowRepository: Successfully read data from \(path)")
+                    break
+                } catch {
+                    print("❌ FlowRepository: Failed to load flow from \(path): \(error)")
+                }
+            } else {
+                print("❌ FlowRepository: No file found at path: \(path)")
+            }
+        }
+        
+        guard let data = flowData else {
+            print("❌ FlowRepository: No flow data found for \(flowType.rawValue)")
+            throw FlowRepositoryError.flowNotFound(flowType)
+        }
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        
+        do {
+            let flow = try decoder.decode(ConversationalFlow.self, from: data)
+            print("✅ FlowRepository: Successfully decoded conversational flow: \(flow.title)")
+            print("✅ FlowRepository: Flow has \(flow.nodes.count) nodes")
+            return flow
+        } catch {
+            print("❌ FlowRepository: Failed to decode conversational flow from \(foundPath ?? "unknown"): \(error)")
+            print("❌ FlowRepository: Decoding error details: \(error)")
+            
+            // Try to print the JSON content for debugging
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("🔍 FlowRepository: JSON content (first 500 chars): \(String(jsonString.prefix(500)))")
+            }
+            
             throw FlowRepositoryError.importFailed(error)
         }
     }

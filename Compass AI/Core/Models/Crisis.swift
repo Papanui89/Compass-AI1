@@ -54,6 +54,7 @@ enum CrisisType: String, Codable, CaseIterable, Identifiable {
     case abuse = "abuse"
     case harassment = "harassment"
     case panicAttack = "panic_attack"
+    case bullying = "bullying"
     case other = "other"
     
     var id: String { rawValue }
@@ -80,6 +81,8 @@ enum CrisisType: String, Codable, CaseIterable, Identifiable {
             return "Harassment"
         case .panicAttack:
             return "Panic Attack"
+        case .bullying:
+            return "Bullying Support"
         case .other:
             return "Other Crisis"
         }
@@ -93,7 +96,7 @@ enum CrisisType: String, Codable, CaseIterable, Identifiable {
             return .high
         case .mentalHealth, .substanceAbuse, .panicAttack:
             return .medium
-        case .abuse, .harassment:
+        case .abuse, .harassment, .bullying:
             return .medium
         case .naturalDisaster:
             return .high
@@ -124,6 +127,8 @@ enum CrisisType: String, Codable, CaseIterable, Identifiable {
             return "911"
         case .panicAttack:
             return "988"
+        case .bullying:
+            return "988" // Mental health support for bullying
         case .other:
             return "911"
         }
@@ -155,6 +160,8 @@ enum CrisisType: String, Codable, CaseIterable, Identifiable {
             return "You have rights. Let's help you address this situation."
         case .panicAttack:
             return "This will pass. Let's help you through this moment."
+        case .bullying:
+            return "You're not alone. Let's get strategic about handling this."
         case .other:
             return "Help is available. Let's figure out what you need."
         }
@@ -182,6 +189,8 @@ enum CrisisType: String, Codable, CaseIterable, Identifiable {
             return "message.fill"
         case .panicAttack:
             return "lungs.fill"
+        case .bullying:
+            return "person.2.fill"
         case .other:
             return "exclamationmark.triangle.fill"
         }
@@ -197,7 +206,7 @@ enum CrisisType: String, Codable, CaseIterable, Identifiable {
             return .blue
         case .substanceAbuse:
             return .purple
-        case .abuse, .harassment:
+        case .abuse, .harassment, .bullying:
             return .yellow
         case .naturalDisaster:
             return .gray
@@ -234,6 +243,15 @@ enum CrisisType: String, Codable, CaseIterable, Identifiable {
                 "Find a safe place to go - a friend's house, family member, or shelter",
                 "Pack essential items if you need to leave quickly",
                 "Document any injuries or incidents"
+            ]
+        case .bullying:
+            return [
+                "Assess the situation - what type of bullying is this?",
+                "Document everything - dates, times, what was said/done",
+                "Choose your response strategy - ignore, redirect, or report",
+                "Build your support system - find your real friends",
+                "Focus on your goals - they're temporary, your future isn't",
+                "Remember: You're the one with options, they're stuck being pathetic"
             ]
         default:
             return [
