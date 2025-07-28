@@ -132,27 +132,18 @@ struct AIChatBar: View {
     let onSend: () -> Void
     let onMicTap: () -> Void
     
-    @State private var isPulsing = false
-    @State private var isGlowing = false
-    
     var body: some View {
         VStack(spacing: 0) {
             // Hero AI Chat Section
-            VStack(spacing: 20) {
+            VStack(spacing: 28) {
                 // Header with icon and title
-                HStack(spacing: 16) {
+                HStack(spacing: 18) {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 28, weight: .medium))
+                        .font(.system(size: 32, weight: .medium))
                         .foregroundColor(.white)
-                        .scaleEffect(isPulsing ? 1.15 : 1.0)
-                        .animation(
-                            Animation.easeInOut(duration: 2.0)
-                                .repeatForever(autoreverses: true),
-                            value: isPulsing
-                        )
                     
                     Text("What's happening? Talk to me...")
-                        .font(.system(size: 24, weight: .semibold))
+                        .font(.system(size: 26, weight: .semibold))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.leading)
                     
@@ -160,18 +151,18 @@ struct AIChatBar: View {
                 }
                 
                 // Chat input area
-                HStack(spacing: 20) {
+                HStack(spacing: 24) {
                     // Mic button
                     Button(action: onMicTap) {
                         Image(systemName: isListening ? "stop.circle.fill" : "mic.circle.fill")
-                            .font(.system(size: 52, weight: .medium))
+                            .font(.system(size: 56, weight: .medium))
                             .foregroundColor(isListening ? .red : .white)
                             .background(
                                 Circle()
                                     .fill(Color.white.opacity(0.25))
-                                    .frame(width: 70, height: 70)
+                                    .frame(width: 76, height: 76)
                             )
-                            .frame(width: 70, height: 70)
+                            .frame(width: 76, height: 76)
                             .scaleEffect(isListening ? 1.1 : 1.0)
                             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isListening)
                     }
@@ -180,27 +171,27 @@ struct AIChatBar: View {
                     // Text input
                     HStack {
                         TextField("Type your message here...", text: $message)
-                            .font(.system(size: 20))
+                            .font(.system(size: 22))
                             .foregroundColor(.white)
                             .textFieldStyle(PlainTextFieldStyle())
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 20)
+                            .padding(.horizontal, 28)
+                            .padding(.vertical, 24)
                             .background(Color.white.opacity(0.2))
-                            .cornerRadius(24)
+                            .cornerRadius(26)
                         
                         if !message.isEmpty {
                             Button(action: onSend) {
                                 Image(systemName: "arrow.up.circle.fill")
-                                    .font(.system(size: 36, weight: .medium))
+                                    .font(.system(size: 40, weight: .medium))
                                     .foregroundColor(.white)
                             }
                             .accessibilityLabel("Send message")
-                            .padding(.trailing, 12)
+                            .padding(.trailing, 14)
                         }
                     }
                 }
             }
-            .padding(28)
+            .padding(36)
             .background(
                 LinearGradient(
                     colors: [
@@ -211,22 +202,16 @@ struct AIChatBar: View {
                     endPoint: .bottomTrailing
                 )
             )
-            .cornerRadius(28)
+            .cornerRadius(30)
             .shadow(
                 color: Color.purple.opacity(0.4),
-                radius: 16,
+                radius: 18,
                 x: 0,
-                y: 8
+                y: 10
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 28)
+                RoundedRectangle(cornerRadius: 30)
                     .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
-            )
-            .scaleEffect(isGlowing ? 1.02 : 1.0)
-            .animation(
-                Animation.easeInOut(duration: 3.0)
-                    .repeatForever(autoreverses: true),
-                value: isGlowing
             )
             
             // Divider with "OR" text
@@ -246,10 +231,6 @@ struct AIChatBar: View {
             }
             .padding(.vertical, 24)
         }
-        .onAppear {
-            isPulsing = true
-            isGlowing = true
-        }
     }
 }
 
@@ -258,7 +239,7 @@ struct CrisisCardsGrid: View {
     let onCrisisTap: (CrisisType) -> Void
     
     private let crisisData: [(CrisisType, String, String, Color)] = [
-        (.panicAttack, "😰", "FREAKING OUT", .orange),
+        (.panicAttack, "😰", "PANIC ATTACK", .orange),
         (.bullying, "🛡️", "GETTING BULLIED", .blue),
         (.suicide, "💔", "WANT TO DIE", .red),
         (.harassment, "🚨", "COPS/COPS STOP", .purple),
@@ -306,9 +287,9 @@ struct CrisisCard: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 20) {
+            VStack(spacing: 16) {
                 Text(emoji)
-                    .font(.system(size: 48))
+                    .font(.system(size: 40))
                     .scaleEffect(isAnimating ? 1.08 : 1.0)
                     .animation(
                         Animation.easeInOut(duration: 2.5)
@@ -317,16 +298,16 @@ struct CrisisCard: View {
                     )
                 
                 Text(title)
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
                     .lineLimit(3)
                     .minimumScaleFactor(0.8)
             }
-            .frame(minHeight: 140)
+            .frame(minHeight: 120)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 24)
-            .padding(.horizontal, 20)
+            .padding(.vertical, 20)
+            .padding(.horizontal, 16)
             .background(
                 LinearGradient(
                     colors: [color, color.opacity(0.8)],
@@ -334,12 +315,12 @@ struct CrisisCard: View {
                     endPoint: .bottomTrailing
                 )
             )
-            .cornerRadius(24)
+            .cornerRadius(22)
             .shadow(
                 color: color.opacity(0.4),
-                radius: 12,
+                radius: 10,
                 x: 0,
-                y: 6
+                y: 5
             )
             .scaleEffect(isPressed ? 0.95 : 1.0)
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
@@ -390,7 +371,7 @@ struct RecentCrisisCard: View {
     
     private var crisisInfo: (String, String, Color) {
         switch crisis {
-        case .panicAttack: return ("😰", "FREAKING OUT", .orange)
+        case .panicAttack: return ("😰", "PANIC ATTACK", .orange)
         case .bullying: return ("🛡️", "BULLIED", .blue)
         case .suicide: return ("💔", "WANT TO DIE", .red)
         case .harassment: return ("🚨", "COPS", .purple)
@@ -407,16 +388,16 @@ struct RecentCrisisCard: View {
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 Text(crisisInfo.0)
-                    .font(.system(size: 24))
+                    .font(.system(size: 20))
                 
                 Text(crisisInfo.1)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.white)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
             .background(
                 LinearGradient(
                     colors: [crisisInfo.2, crisisInfo.2.opacity(0.8)],
@@ -424,8 +405,8 @@ struct RecentCrisisCard: View {
                     endPoint: .trailing
                 )
             )
-            .cornerRadius(24)
-            .shadow(color: crisisInfo.2.opacity(0.4), radius: 6, x: 0, y: 3)
+            .cornerRadius(20)
+            .shadow(color: crisisInfo.2.opacity(0.4), radius: 5, x: 0, y: 2)
             .scaleEffect(isPressed ? 0.95 : 1.0)
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
         }
