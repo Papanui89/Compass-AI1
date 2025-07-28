@@ -86,15 +86,14 @@ class AIChatViewModel: ObservableObject {
         
         Task {
             do {
-                // Try online AI first, fallback to local
-                let response = await localAI.generateResponse(
-                    for: text,
-                    context: .crisis,
-                    triggers: triggers
-                )
+                // Analyze the text for crisis indicators
+                let analysis = try await localAI.analyzeText(text)
                 
                 await MainActor.run {
                     self.isAITyping = false
+                    
+                    // Generate response based on analysis
+                    let response = self.generateResponseFromAnalysis(analysis, triggers: triggers)
                     let aiMessage = ChatMessage(content: response, isUser: false)
                     self.messages.append(aiMessage)
                 }
@@ -106,6 +105,29 @@ class AIChatViewModel: ObservableObject {
                 }
             }
         }
+    }
+    
+    private func generateResponseFromAnalysis(_ analysis: CrisisAnalysis, triggers: [Trigger]) -> String {
+        let triggerTypes = Set(triggers.map { $0.type })
+        
+        // High risk responses
+        if analysis.riskScore > 0.7 {
+            if triggerTypes.contains(.suicide) {
+                return "I'm very concerned about what you're telling me. Your life has value and you don't have to face this alone. Please call 988 right now - they're available 24/7 and want to help you."
+            } else if triggerTypes.contains(.violence) {
+                return "Your safety is my top priority. If you're in immediate danger, please call 911. I can help you find resources and support to stay safe."
+            } else if triggerTypes.contains(.medical) {
+                return "This sounds like it could be a medical emergency. Please call 911 or go to the nearest emergency room immediately."
+            }
+        }
+        
+        // Medium risk responses
+        if analysis.riskScore > 0.4 {
+            return "I can hear that you're going through something really difficult. Can you tell me more about what's happening? I want to make sure you get the right kind of help."
+        }
+        
+        // Low risk responses
+        return "I'm here to listen and help. What would be most helpful for you right now? I can guide you to resources, help you make a plan, or just be here to talk."
     }
     
     private func showFallbackResponse() {
@@ -148,4 +170,9 @@ enum CrisisTrigger {
     case medical
     case police
     case panic
+}
+
+// Notification extension
+extension Notification.Name {
+    static let triggerEmergencyMode = Notification.Name("triggerEmergencyMode")
 } 

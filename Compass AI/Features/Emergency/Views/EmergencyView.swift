@@ -4,6 +4,7 @@ struct EmergencyView: View {
     @StateObject private var viewModel = EmergencyViewModel()
     @State private var showingCrisisType: CrisisType?
     @State private var showingPanicMode = false
+    @State private var showingAIChat = false
     
     var body: some View {
         ZStack {
@@ -57,12 +58,39 @@ struct EmergencyView: View {
                 }
                 .padding(.horizontal, 20)
                 
+                // AI Chat Button
+                Button(action: {
+                    showingAIChat = true
+                }) {
+                    HStack {
+                        Image(systemName: "message.fill")
+                            .font(.title2)
+                        Text("Describe Your Situation")
+                            .font(.headline)
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(
+                        LinearGradient(
+                            colors: [Color.purple, Color.blue],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(15)
+                }
+                .padding(.horizontal, 20)
+                
                 Spacer()
             }
         }
         .navigationBarHidden(true)
         .sheet(item: $showingCrisisType) { crisis in
             FlowPlayerView(crisisType: crisis)
+        }
+        .sheet(isPresented: $showingAIChat) {
+            AIChatView()
         }
         .fullScreenCover(isPresented: $showingPanicMode) {
             PanicModeView()
