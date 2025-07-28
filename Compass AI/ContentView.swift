@@ -9,11 +9,16 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var appState = AppState.shared
+    @StateObject private var emergencyViewModel = EmergencyViewModel()
     
     var body: some View {
         NavigationView {
             EmergencyView()
                 .environmentObject(appState)
+                .environmentObject(emergencyViewModel)
+        }
+        .onAppear {
+            emergencyViewModel.recordAppOpen()
         }
     }
 }

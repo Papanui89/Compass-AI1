@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct EmergencyView: View {
-    @StateObject private var viewModel = EmergencyViewModel()
+    @EnvironmentObject private var viewModel: EmergencyViewModel
     @State private var showingCrisisType: CrisisType?
     @State private var showingPanicMode = false
     @State private var showingAIChat = false
@@ -26,7 +26,12 @@ struct EmergencyView: View {
                     isListening: $isListening,
                     onSend: {
                         if !aiMessage.isEmpty {
-                            showingAIChat = true
+                            // Analyze text for crisis keywords
+                            if let crisisType = viewModel.analyzeTextForCrisis(aiMessage) {
+                                showingCrisisType = crisisType
+                            } else {
+                                showingAIChat = true
+                            }
                         }
                     },
                     onMicTap: {
@@ -151,7 +156,7 @@ struct CrisisCardsGrid: View {
         (.panicAttack, "😰", "FREAKING OUT", .orange),
         (.bullying, "🛡️", "GETTING BULLIED", .blue),
         (.suicide, "💔", "WANT TO DIE", .red),
-        (.policeEncounter, "🚨", "COPS/COPS STOP", .purple),
+        (.harassment, "🚨", "COPS/COPS STOP", .purple),
         (.medicalEmergency, "🏥", "MEDICAL EMERGENCY", .red),
         (.domesticViolence, "🏠", "UNSAFE AT HOME", .red)
     ]
@@ -261,9 +266,15 @@ struct RecentCrisisCard: View {
         case .panicAttack: return ("😰", "FREAKING OUT", .orange)
         case .bullying: return ("🛡️", "BULLIED", .blue)
         case .suicide: return ("💔", "WANT TO DIE", .red)
-        case .policeEncounter: return ("🚨", "COPS", .purple)
+        case .harassment: return ("🚨", "COPS", .purple)
         case .medicalEmergency: return ("🏥", "MEDICAL", .red)
         case .domesticViolence: return ("🏠", "UNSAFE", .red)
+        case .mentalHealth: return ("🧠", "MENTAL HEALTH", .blue)
+        case .substanceAbuse: return ("💊", "SUBSTANCE", .purple)
+        case .naturalDisaster: return ("🌪️", "DISASTER", .gray)
+        case .violence: return ("⚔️", "VIOLENCE", .orange)
+        case .abuse: return ("⚠️", "ABUSE", .yellow)
+        case .other: return ("❓", "OTHER", .secondary)
         }
     }
     

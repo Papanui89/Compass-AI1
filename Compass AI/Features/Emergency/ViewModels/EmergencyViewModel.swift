@@ -37,7 +37,7 @@ final class EmergencyViewModel: ObservableObject {
         
         Task {
             await loadEmergencyContacts()
-            await loadRecentCrises()
+            loadRecentCrises()
             
             DispatchQueue.main.async {
                 self.isLoading = false
@@ -147,7 +147,7 @@ final class EmergencyViewModel: ObservableObject {
         if lowercased.contains("cops") || lowercased.contains("police") ||
            lowercased.contains("arrested") || lowercased.contains("detained") ||
            lowercased.contains("pulled over") || lowercased.contains("questioned") {
-            return .policeEncounter
+            return .harassment
         }
         
         // Medical emergency keywords
