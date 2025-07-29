@@ -225,11 +225,22 @@ class FlowRepository {
         print("🔍 FlowRepository: Loading bundled conversational flow for \(flowType.rawValue)")
         
         // Try different possible paths for the JSON file
-        let possiblePaths = [
-            "Resources/Flows/\(flowType.rawValue)",
-            "Flows/\(flowType.rawValue)",
-            flowType.rawValue
-        ]
+        let possiblePaths: [String]
+        
+        if flowType == .panic {
+            // Use the new panic assessment flow
+            possiblePaths = [
+                "Resources/Flows/panic_severity_assessment",
+                "Flows/panic_severity_assessment",
+                "panic_severity_assessment"
+            ]
+        } else {
+            possiblePaths = [
+                "Resources/Flows/\(flowType.rawValue)",
+                "Flows/\(flowType.rawValue)",
+                flowType.rawValue
+            ]
+        }
         
         var flowData: Data?
         var foundPath: String?

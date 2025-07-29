@@ -1,0 +1,414 @@
+{
+  "id": "panic_assessment",
+  "name": "Panic Attack Support",
+  "description": "Evidence-based panic attack intervention with severity-based techniques",
+  "nodes": {
+    "start": {
+      "id": "start",
+      "type": "statement",
+      "content": "I'm here to help you through this panic attack. What you're experiencing is real, but you're safe. Let's work through this together.",
+      "next": "education",
+      "therapist_tip": "Panic attacks are uncomfortable but not dangerous. Your body is trying to protect you."
+    },
+    "education": {
+      "id": "education",
+      "type": "statement",
+      "content": "What's happening: Your nervous system is in overdrive, but this is temporary. Panic attacks typically peak within 10 minutes and resolve within 20 minutes. You're not dying - this is your body's fight-or-flight response.",
+      "next": "severity_check",
+      "therapist_tip": "Understanding what's happening reduces fear and helps you ride it out."
+    },
+    "severity_check": {
+      "id": "severity_check",
+      "type": "question",
+      "content": "How intense does this feel right now? (1-10 scale)",
+      "options": [
+        {
+          "text": "Mild (3-4/10) - Anxious but managing",
+          "next": "mild_intervention",
+          "severity": 3,
+          "description": "You're experiencing anxiety but can still think clearly"
+        },
+        {
+          "text": "Moderate (5-7/10) - Heart racing, scared",
+          "next": "moderate_intervention",
+          "severity": 6,
+          "description": "Physical symptoms are strong but manageable"
+        },
+        {
+          "text": "Severe (8-10/10) - Can't breathe, think I'm dying",
+          "next": "severe_intervention",
+          "severity": 9,
+          "description": "Intense symptoms, feeling overwhelmed"
+        }
+      ]
+    },
+    "mild_intervention": {
+      "id": "mild_intervention",
+      "type": "statement",
+      "content": "Great! You're managing this well. Let's use some gentle grounding techniques to help you feel more centered.",
+      "next": "mild_techniques",
+      "therapist_tip": "Mild panic is perfect for learning techniques you can use preventively."
+    },
+    "mild_techniques": {
+      "id": "mild_techniques",
+      "type": "question",
+      "content": "Which technique would you like to try?",
+      "options": [
+        {
+          "text": "5-4-3-2-1 Sensory Grounding",
+          "next": "grounding_technique",
+          "technique": "grounding",
+          "description": "Connect with your senses to stay present"
+        },
+        {
+          "text": "Progressive Muscle Relaxation",
+          "next": "pmr_technique",
+          "technique": "pmr",
+          "description": "Release tension throughout your body"
+        },
+        {
+          "text": "Mindful Observation",
+          "next": "mindful_observation",
+          "technique": "mindful",
+          "description": "Observe thoughts without judgment"
+        }
+      ]
+    },
+    "moderate_intervention": {
+      "id": "moderate_intervention",
+      "type": "statement",
+      "content": "I can see this is intense. Let's use some stronger techniques to help your nervous system calm down. Remember: fighting it makes it worse - we're going to ride this wave together.",
+      "next": "moderate_techniques",
+      "therapist_tip": "Moderate panic responds well to physiological techniques that activate the parasympathetic nervous system."
+    },
+    "moderate_techniques": {
+      "id": "moderate_techniques",
+      "type": "question",
+      "content": "Let's try one of these evidence-based techniques:",
+      "options": [
+        {
+          "text": "Box Breathing (4-4-4-4)",
+          "next": "box_breathing",
+          "technique": "box_breathing",
+          "description": "Regulate your breathing pattern"
+        },
+        {
+          "text": "TIPP Technique",
+          "next": "tipp_technique",
+          "technique": "tipp",
+          "description": "Temperature, Intense exercise, Paced breathing, Paired muscle relaxation"
+        },
+        {
+          "text": "Bilateral Stimulation",
+          "next": "bilateral_stimulation",
+          "technique": "bilateral",
+          "description": "Cross-lateral movements to calm the brain"
+        }
+      ]
+    },
+    "severe_intervention": {
+      "id": "severe_intervention",
+      "type": "statement",
+      "content": "I understand this feels overwhelming. You're safe, and this will pass. Let's use some immediate techniques to help your body calm down. If you have prescribed medication for panic attacks, consider taking it now.",
+      "next": "severe_techniques",
+      "therapist_tip": "Severe panic requires immediate physiological intervention. The goal is to activate the dive reflex or strong sensory input."
+    },
+    "severe_techniques": {
+      "id": "severe_techniques",
+      "type": "question",
+      "content": "Choose the technique that feels most accessible right now:",
+      "options": [
+        {
+          "text": "Ice Diving Response",
+          "next": "ice_diving",
+          "technique": "ice_diving",
+          "description": "Cold water/ice on face to activate dive reflex"
+        },
+        {
+          "text": "4-7-8 Breathing",
+          "next": "breathing_478",
+          "technique": "breathing_478",
+          "description": "Longer exhale to activate parasympathetic system"
+        },
+        {
+          "text": "Strong Sensory Input",
+          "next": "sensory_input",
+          "technique": "sensory_input",
+          "description": "Sour candy, loud music, or movement"
+        }
+      ]
+    },
+    "grounding_technique": {
+      "id": "grounding_technique",
+      "type": "interactive",
+      "content": "Let's do the 5-4-3-2-1 grounding technique. I'll guide you through each step.",
+      "technique": "grounding",
+      "next": "grounding_step_5",
+      "therapist_tip": "This technique helps you stay present and connected to reality."
+    },
+    "grounding_step_5": {
+      "id": "grounding_step_5",
+      "type": "interactive",
+      "content": "Step 1: Name 5 things you can SEE right now. Look around and identify 5 objects. Take your time.",
+      "technique": "grounding",
+      "step": 5,
+      "next": "grounding_step_4",
+      "timer": 30
+    },
+    "grounding_step_4": {
+      "id": "grounding_step_4",
+      "type": "interactive",
+      "content": "Step 2: Name 4 things you can TOUCH. Feel the texture of your clothes, the surface you're sitting on, etc.",
+      "technique": "grounding",
+      "step": 4,
+      "next": "grounding_step_3",
+      "timer": 30
+    },
+    "grounding_step_3": {
+      "id": "grounding_step_3",
+      "type": "interactive",
+      "content": "Step 3: Name 3 things you can HEAR. Listen for sounds around you - traffic, voices, air conditioning, etc.",
+      "technique": "grounding",
+      "step": 3,
+      "next": "grounding_step_2",
+      "timer": 30
+    },
+    "grounding_step_2": {
+      "id": "grounding_step_2",
+      "type": "interactive",
+      "content": "Step 4: Name 2 things you can SMELL. Notice any scents in the air.",
+      "technique": "grounding",
+      "step": 2,
+      "next": "grounding_step_1",
+      "timer": 30
+    },
+    "grounding_step_1": {
+      "id": "grounding_step_1",
+      "type": "interactive",
+      "content": "Step 5: Name 1 thing you can TASTE. Notice the taste in your mouth, or take a sip of water.",
+      "technique": "grounding",
+      "step": 1,
+      "next": "grounding_complete",
+      "timer": 30
+    },
+    "grounding_complete": {
+      "id": "grounding_complete",
+      "type": "statement",
+      "content": "Excellent! You've completed the grounding exercise. How are you feeling now?",
+      "next": "technique_check",
+      "therapist_tip": "Grounding helps you stay connected to the present moment and reality."
+    },
+    "box_breathing": {
+      "id": "box_breathing",
+      "type": "interactive",
+      "content": "Let's do box breathing together. Follow the visual guide: Inhale for 4, hold for 4, exhale for 4, hold for 4. Repeat this pattern.",
+      "technique": "box_breathing",
+      "next": "box_breathing_cycle",
+      "therapist_tip": "Box breathing activates your parasympathetic nervous system and helps regulate your heart rate."
+    },
+    "box_breathing_cycle": {
+      "id": "box_breathing_cycle",
+      "type": "interactive",
+      "content": "Starting box breathing cycle. Focus on the visual guide and follow the rhythm.",
+      "technique": "box_breathing",
+      "cycles": 5,
+      "next": "breathing_complete",
+      "timer": 120
+    },
+    "breathing_complete": {
+      "id": "breathing_complete",
+      "type": "statement",
+      "content": "Great job with the breathing exercise! How are you feeling now?",
+      "next": "technique_check",
+      "therapist_tip": "Controlled breathing is one of the most effective ways to calm the nervous system."
+    },
+    "ice_diving": {
+      "id": "ice_diving",
+      "type": "interactive",
+      "content": "The ice diving response activates your body's natural calming mechanism. If you have access to cold water or ice, splash it on your face or hold ice cubes to your cheeks. If not, imagine cold water on your face.",
+      "technique": "ice_diving",
+      "next": "ice_diving_complete",
+      "timer": 60,
+      "therapist_tip": "This technique activates the mammalian dive reflex, which slows heart rate and breathing."
+    },
+    "ice_diving_complete": {
+      "id": "ice_diving_complete",
+      "type": "statement",
+      "content": "How did that feel? The cold sensation should have helped activate your body's natural calming response.",
+      "next": "technique_check",
+      "therapist_tip": "The dive reflex is a powerful physiological response that can quickly reduce panic symptoms."
+    },
+    "technique_check": {
+      "id": "technique_check",
+      "type": "question",
+      "content": "How are you feeling after that exercise?",
+      "options": [
+        {
+          "text": "Better - symptoms are improving",
+          "next": "reinforce_success",
+          "response": "positive"
+        },
+        {
+          "text": "Same - still feeling anxious",
+          "next": "try_different_technique",
+          "response": "neutral"
+        },
+        {
+          "text": "Worse - feeling more overwhelmed",
+          "next": "escalate_support",
+          "response": "negative"
+        }
+      ]
+    },
+    "reinforce_success": {
+      "id": "reinforce_success",
+      "type": "statement",
+      "content": "That's wonderful! You're doing exactly what you need to do. The technique is working because you're allowing your nervous system to calm down naturally. Keep practicing this - you're building important skills.",
+      "next": "post_panic_support",
+      "therapist_tip": "Success with techniques builds confidence and reduces future panic intensity."
+    },
+    "try_different_technique": {
+      "id": "try_different_technique",
+      "type": "statement",
+      "content": "That's okay! Different techniques work for different people and situations. Let's try something else. Sometimes it takes a few attempts to find what works best for you.",
+      "next": "alternative_techniques",
+      "therapist_tip": "Not every technique works for everyone. It's normal to need to try different approaches."
+    },
+    "alternative_techniques": {
+      "id": "alternative_techniques",
+      "type": "question",
+      "content": "Let's try a different approach:",
+      "options": [
+        {
+          "text": "Movement-based grounding",
+          "next": "movement_grounding",
+          "technique": "movement"
+        },
+        {
+          "text": "Cognitive restructuring",
+          "next": "cognitive_restructuring",
+          "technique": "cognitive"
+        },
+        {
+          "text": "Anchoring phrases",
+          "next": "anchoring_phrases",
+          "technique": "anchoring"
+        }
+      ]
+    },
+    "escalate_support": {
+      "id": "escalate_support",
+      "type": "statement",
+      "content": "I understand this is really difficult right now. You're not alone, and this will pass. If you have prescribed medication for panic attacks, please consider taking it. If symptoms are severe or you're concerned about your safety, please call emergency services or go to the nearest emergency room.",
+      "next": "emergency_resources",
+      "therapist_tip": "It's important to know when to seek professional medical help."
+    },
+    "emergency_resources": {
+      "id": "emergency_resources",
+      "type": "statement",
+      "content": "Emergency Resources:\n• Call 911 or go to ER if symptoms are severe\n• National Suicide Prevention Lifeline: 988\n• Crisis Text Line: Text HOME to 741741\n• Your local crisis hotline\n\nYou deserve support. This is not a sign of weakness.",
+      "next": "post_panic_support",
+      "therapist_tip": "Knowing when to seek help is a sign of strength and self-awareness."
+    },
+    "post_panic_support": {
+      "id": "post_panic_support",
+      "type": "statement",
+      "content": "You've made it through this panic attack. That takes courage. Let's take a moment to reflect and plan for your recovery.",
+      "next": "debrief_questions",
+      "therapist_tip": "Post-panic debriefing helps integrate the experience and build resilience."
+    },
+    "debrief_questions": {
+      "id": "debrief_questions",
+      "type": "question",
+      "content": "Take a moment to reflect:",
+      "options": [
+        {
+          "text": "What helped me get through this?",
+          "next": "success_identification",
+          "reflection": "success"
+        },
+        {
+          "text": "What triggered this panic attack?",
+          "next": "trigger_identification",
+          "reflection": "trigger"
+        },
+        {
+          "text": "How can I prepare for next time?",
+          "next": "prevention_planning",
+          "reflection": "prevention"
+        }
+      ]
+    },
+    "success_identification": {
+      "id": "success_identification",
+      "type": "statement",
+      "content": "Identifying what worked is powerful! You now have evidence that you can handle panic attacks. Write down what helped so you can use it again. You're building your personal toolkit.",
+      "next": "prevention_education",
+      "therapist_tip": "Success identification builds self-efficacy and reduces future panic intensity."
+    },
+    "trigger_identification": {
+      "id": "trigger_identification",
+      "type": "statement",
+      "content": "Understanding your triggers is an important step. Common triggers include stress, lack of sleep, caffeine, certain situations, or physical sensations. This knowledge helps you prepare and prevent future attacks.",
+      "next": "prevention_education",
+      "therapist_tip": "Trigger awareness is the first step in prevention and management."
+    },
+    "prevention_planning": {
+      "id": "prevention_planning",
+      "type": "statement",
+      "content": "Great proactive thinking! Prevention includes regular practice of techniques when calm, managing stress, getting enough sleep, and building a support network. Consider keeping a panic attack toolkit ready.",
+      "next": "prevention_education",
+      "therapist_tip": "Prevention is often more effective than crisis management."
+    },
+    "prevention_education": {
+      "id": "prevention_education",
+      "type": "statement",
+      "content": "Prevention Tips:\n• Practice techniques daily when calm\n• Build your personal toolkit\n• Identify early warning signs\n• Maintain regular sleep and exercise\n• Consider therapy for long-term support\n• Remember: panic attacks are treatable",
+      "next": "therapy_consideration",
+      "therapist_tip": "Regular practice makes techniques more effective during panic attacks."
+    },
+    "therapy_consideration": {
+      "id": "therapy_consideration",
+      "type": "question",
+      "content": "Would you like information about professional support?",
+      "options": [
+        {
+          "text": "Yes, tell me about therapy options",
+          "next": "therapy_resources",
+          "interest": "high"
+        },
+        {
+          "text": "Maybe later, I'm okay for now",
+          "next": "self_care_plan",
+          "interest": "low"
+        },
+        {
+          "text": "I already have a therapist",
+          "next": "self_care_plan",
+          "interest": "existing"
+        }
+      ]
+    },
+    "therapy_resources": {
+      "id": "therapy_resources",
+      "type": "statement",
+      "content": "Professional support can be incredibly helpful for panic disorder. Consider:\n• Cognitive Behavioral Therapy (CBT)\n• Exposure therapy\n• Medication (if recommended by a psychiatrist)\n• Support groups\n• Online therapy platforms\n\nStart with your primary care doctor or search for therapists specializing in anxiety disorders.",
+      "next": "self_care_plan",
+      "therapist_tip": "Professional help can provide tools and support for long-term recovery."
+    },
+    "self_care_plan": {
+      "id": "self_care_plan",
+      "type": "statement",
+      "content": "For the next few hours:\n• Rest and be gentle with yourself\n• Avoid caffeine and alcohol\n• Do something calming (reading, music, gentle movement)\n• Stay hydrated\n• Reach out to someone you trust\n\nYou've done hard work today. Be proud of yourself.",
+      "next": "end",
+      "therapist_tip": "Self-care after a panic attack is essential for recovery and prevention."
+    },
+    "end": {
+      "id": "end",
+      "type": "statement",
+      "content": "You've successfully navigated this panic attack. Remember: you're stronger than you think, and this experience doesn't define you. You have tools now, and you can handle this. Be kind to yourself today.",
+      "next": null,
+      "therapist_tip": "Ending with encouragement and validation helps integrate the experience positively."
+    }
+  }
+} 

@@ -546,28 +546,48 @@ enum VariableType: String, Codable, CaseIterable {
 struct ConversationalNode: Codable {
     let id: String
     let type: String
+    let content: String
     let messages: [String]
     let delay: Double?
     let options: [ConversationOption]?
     let action: String?
     let nextNode: String?
     
+    // Interactive technique properties
+    let technique: String?
+    let timer: Int?
+    let step: Int?
+    let cycles: Int?
+    let therapistTip: String?
+    
     init(
         id: String,
         type: String,
-        messages: [String],
+        content: String = "",
+        messages: [String] = [],
         delay: Double? = nil,
         options: [ConversationOption]? = nil,
         action: String? = nil,
-        nextNode: String? = nil
+        nextNode: String? = nil,
+        technique: String? = nil,
+        timer: Int? = nil,
+        step: Int? = nil,
+        cycles: Int? = nil,
+        therapistTip: String? = nil
     ) {
         self.id = id
         self.type = type
+        self.content = content
         self.messages = messages
         self.delay = delay
         self.options = options
         self.action = action
         self.nextNode = nextNode
+        self.technique = technique
+        self.timer = timer
+        self.step = step
+        self.cycles = cycles
+        self.therapistTip = therapistTip
     }
 }
 
@@ -575,10 +595,31 @@ struct ConversationalNode: Codable {
 struct ConversationOption: Codable {
     let text: String
     let nextNode: String
+    let severity: Int?
+    let description: String?
+    let technique: String?
+    let response: String?
+    let reflection: String?
+    let interest: String?
     
-    init(text: String, nextNode: String) {
+    init(
+        text: String, 
+        nextNode: String,
+        severity: Int? = nil,
+        description: String? = nil,
+        technique: String? = nil,
+        response: String? = nil,
+        reflection: String? = nil,
+        interest: String? = nil
+    ) {
         self.text = text
         self.nextNode = nextNode
+        self.severity = severity
+        self.description = description
+        self.technique = technique
+        self.response = response
+        self.reflection = reflection
+        self.interest = interest
     }
 }
 

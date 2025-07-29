@@ -347,4 +347,54 @@ class ConversationalFlowViewModel: ObservableObject {
         currentNode = node
         displayNode(node)
     }
+    
+    // MARK: - Interactive Technique Handling
+    
+    func handleTechniqueComplete() {
+        print("🔍 ConversationalFlowViewModel: Technique completed")
+        
+        guard let currentNode = currentNode else {
+            print("❌ ConversationalFlowViewModel: No current node for technique completion")
+            return
+        }
+        
+        // Add completion message
+        addMessage("Exercise completed", isFromUser: false)
+        
+        // Move to next node if specified
+        if let nextNode = currentNode.nextNode {
+            moveToNode(nextNode)
+        } else {
+            // Show options if available
+            if let options = currentNode.options, !options.isEmpty {
+                DispatchQueue.main.async {
+                    self.currentOptions = options
+                }
+            }
+        }
+    }
+    
+    // MARK: - Panic Assessment Flow Support
+    
+    func loadPanicAssessmentFlow() {
+        print("🔍 ConversationalFlowViewModel: Loading panic assessment flow")
+        
+        // Load the new panic assessment flow
+        Task {
+            do {
+                let flow = try await flowRepository.loadConversationalFlow(.panic)
+                await MainActor.run {
+                    self.currentFlow = flow
+                    self.isLoading = false
+                    self.isFlowActive = true
+                    self.startFlow()
+                }
+            } catch {
+                await MainActor.run {
+                    print("❌ ConversationalFlowViewModel: Failed to load panic assessment flow: \(error)")
+                    self.loadHardcodedFlow()
+                }
+            }
+        }
+    }
 } 

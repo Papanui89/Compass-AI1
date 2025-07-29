@@ -86,6 +86,14 @@ struct FlowPlayerView: View {
                                     .id(message.id)
                             }
                             
+                            // Interactive technique views
+                            if let currentNode = viewModel.currentNode, currentNode.type == "interactive" {
+                                InteractiveTechniqueView(node: currentNode) {
+                                    viewModel.handleTechniqueComplete()
+                                }
+                                .id("technique")
+                            }
+                            
                             // Typing indicator
                             if viewModel.isTyping {
                                 TypingIndicatorView()
